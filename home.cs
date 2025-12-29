@@ -10,14 +10,14 @@ using System.Windows.Forms;
 
 namespace MediTech._0._2
 {
-    public partial class Form1 : Form
+    public partial class home : Form
     {
-        public Form1()
+        public home( int idUsuario, string rol)
         {
             InitializeComponent();
         }
 
-        private void label2_Click(object sender, EventArgs e)
+        private void home_Load(object sender, EventArgs e)
         {
 
         }
