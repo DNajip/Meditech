@@ -8,18 +8,13 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace MediTech._0._2
+namespace MediTech._0._2.pages
 {
-    public partial class home : Form
+    public partial class Consentimientos : Form
     {
-        public home( int idUsuario, string rol)
+        public Consentimientos()
         {
             InitializeComponent();
-        }
-
-        private void home_Load(object sender, EventArgs e)
-        {
-
         }
     }
 }

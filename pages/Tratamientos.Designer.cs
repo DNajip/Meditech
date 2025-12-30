@@ -1,6 +1,6 @@
-﻿namespace MediTech._0._2
+﻿namespace MediTech._0._2.pages
 {
-    partial class home
+    partial class Tratamientos
     {
         /// <summary>
         /// Required designer variable.
@@ -28,18 +28,10 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.SuspendLayout();
-            // 
-            // home
-            // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.components = new System.ComponentModel.Container();
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Name = "home";
-            this.Text = "inicio";
-            this.Load += new System.EventHandler(this.home_Load);
-            this.ResumeLayout(false);
-
+            this.Text = "Tratamientos";
         }
 
         #endregion

@@ -48,10 +48,40 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Conexion\ConexionBD.cs" />
-    <Compile Include="home.cs">
+    <Compile Include="pages\Caja.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="home.Designer.cs">
+    <Compile Include="pages\Caja.Designer.cs">
+      <DependentUpon>Caja.cs</DependentUpon>
+    </Compile>
+    <Compile Include="pages\Citas.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="pages\Citas.Designer.cs">
+      <DependentUpon>Citas.cs</DependentUpon>
+    </Compile>
+    <Compile Include="pages\Consentimientos.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="pages\Consentimientos.Designer.cs">
+      <DependentUpon>Consentimientos.cs</DependentUpon>
+    </Compile>
+    <Compile Include="pages\DashboardAdmin.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="pages\DashboardAdmin.Designer.cs">
+      <DependentUpon>DashboardAdmin.cs</DependentUpon>
+    </Compile>
+    <Compile Include="pages\Historial.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="pages\Historial.Designer.cs">
+      <DependentUpon>Historial.cs</DependentUpon>
+    </Compile>
+    <Compile Include="pages\home.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="pages\home.Designer.cs">
       <DependentUpon>home.cs</DependentUpon>
     </Compile>
     <Compile Include="Login.cs">
@@ -60,13 +90,37 @@
     <Compile Include="Login.Designer.cs">
       <DependentUpon>Login.cs</DependentUpon>
     </Compile>
+    <Compile Include="pages\Pacientes.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="pages\Pacientes.Designer.cs">
+      <DependentUpon>Pacientes.cs</DependentUpon>
+    </Compile>
+    <Compile Include="pages\Reportes.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="pages\Reportes.Designer.cs">
+      <DependentUpon>Reportes.cs</DependentUpon>
+    </Compile>
+    <Compile Include="pages\Tratamientos.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="pages\Tratamientos.Designer.cs">
+      <DependentUpon>Tratamientos.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="home.resx">
+    <EmbeddedResource Include="pages\DashboardAdmin.resx">
+      <DependentUpon>DashboardAdmin.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="pages\home.resx">
       <DependentUpon>home.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Login.resx">
       <DependentUpon>Login.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="pages\Pacientes.resx">
+      <DependentUpon>Pacientes.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

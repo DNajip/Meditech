@@ -9,3 +9,5 @@ E:\Programación\Programas en Visual C#\MediTech.0.2\obj\Debug\MediTech.0.2.exe
 E:\Programación\Programas en Visual C#\MediTech.0.2\obj\Debug\MediTech.0.2.pdb
 E:\Programación\Programas en Visual C#\MediTech.0.2\obj\Debug\MediTech._0._2.Login.resources
 E:\Programación\Programas en Visual C#\MediTech.0.2\obj\Debug\MediTech._0._2.home.resources
+E:\Programación\Programas en Visual C#\MediTech.0.2\obj\Debug\MediTech._0._2.pages.DashboardAdmin.resources
+E:\Programación\Programas en Visual C#\MediTech.0.2\obj\Debug\MediTech._0._2.pages.Pacientes.resources

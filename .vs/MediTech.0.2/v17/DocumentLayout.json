@@ -3,24 +3,24 @@
   "WorkspaceRootPath": "E:\\Programaci\u00F3n\\Programas en Visual C#\\MediTech.0.2\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{1B920D4D-A5EA-41F9-B56C-F63316F01F56}|MediTech.0.2.csproj|e:\\programaci\u00F3n\\programas en visual c#\\meditech.0.2\\login.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1B920D4D-A5EA-41F9-B56C-F63316F01F56}|MediTech.0.2.csproj|solutionrelative:login.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{1B920D4D-A5EA-41F9-B56C-F63316F01F56}|MediTech.0.2.csproj|e:\\programaci\u00F3n\\programas en visual c#\\meditech.0.2\\pages\\pacientes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{1B920D4D-A5EA-41F9-B56C-F63316F01F56}|MediTech.0.2.csproj|solutionrelative:pages\\pacientes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{1B920D4D-A5EA-41F9-B56C-F63316F01F56}|MediTech.0.2.csproj|e:\\programaci\u00F3n\\programas en visual c#\\meditech.0.2\\home.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
-      "RelativeMoniker": "D:0:0:{1B920D4D-A5EA-41F9-B56C-F63316F01F56}|MediTech.0.2.csproj|solutionrelative:home.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+      "AbsoluteMoniker": "D:0:0:{1B920D4D-A5EA-41F9-B56C-F63316F01F56}|MediTech.0.2.csproj|e:\\programaci\u00F3n\\programas en visual c#\\meditech.0.2\\pages\\home.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{1B920D4D-A5EA-41F9-B56C-F63316F01F56}|MediTech.0.2.csproj|solutionrelative:pages\\home.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1B920D4D-A5EA-41F9-B56C-F63316F01F56}|MediTech.0.2.csproj|e:\\programaci\u00F3n\\programas en visual c#\\meditech.0.2\\pages\\pacientes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1B920D4D-A5EA-41F9-B56C-F63316F01F56}|MediTech.0.2.csproj|solutionrelative:pages\\pacientes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{1B920D4D-A5EA-41F9-B56C-F63316F01F56}|MediTech.0.2.csproj|e:\\programaci\u00F3n\\programas en visual c#\\meditech.0.2\\login.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
       "RelativeMoniker": "D:0:0:{1B920D4D-A5EA-41F9-B56C-F63316F01F56}|MediTech.0.2.csproj|solutionrelative:login.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{1B920D4D-A5EA-41F9-B56C-F63316F01F56}|MediTech.0.2.csproj|e:\\programaci\u00F3n\\programas en visual c#\\meditech.0.2\\home.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1B920D4D-A5EA-41F9-B56C-F63316F01F56}|MediTech.0.2.csproj|solutionrelative:home.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{1B920D4D-A5EA-41F9-B56C-F63316F01F56}|MediTech.0.2.csproj|e:\\programaci\u00F3n\\programas en visual c#\\meditech.0.2\\conexion\\conexionbd.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1B920D4D-A5EA-41F9-B56C-F63316F01F56}|MediTech.0.2.csproj|solutionrelative:conexion\\conexionbd.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{1B920D4D-A5EA-41F9-B56C-F63316F01F56}|MediTech.0.2.csproj|e:\\programaci\u00F3n\\programas en visual c#\\meditech.0.2\\login.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1B920D4D-A5EA-41F9-B56C-F63316F01F56}|MediTech.0.2.csproj|solutionrelative:login.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -38,65 +38,64 @@
             },
             {
               "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Pacientes.cs",
+              "DocumentMoniker": "E:\\Programaci\u00F3n\\Programas en Visual C#\\MediTech.0.2\\pages\\Pacientes.cs",
+              "RelativeDocumentMoniker": "pages\\Pacientes.cs",
+              "ToolTip": "E:\\Programaci\u00F3n\\Programas en Visual C#\\MediTech.0.2\\pages\\Pacientes.cs",
+              "RelativeToolTip": "pages\\Pacientes.cs",
+              "ViewState": "AQIAAB0AAAAAAAAAAAA3wDIAAABGAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-29T21:19:11.701Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 4,
-              "Title": "ConexionBD.cs",
-              "DocumentMoniker": "E:\\Programaci\u00F3n\\Programas en Visual C#\\MediTech.0.2\\Conexion\\ConexionBD.cs",
-              "RelativeDocumentMoniker": "Conexion\\ConexionBD.cs",
-              "ToolTip": "E:\\Programaci\u00F3n\\Programas en Visual C#\\MediTech.0.2\\Conexion\\ConexionBD.cs",
-              "RelativeToolTip": "Conexion\\ConexionBD.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAA4AAABcAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-29T13:30:30.457Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "home.cs",
-              "DocumentMoniker": "E:\\Programaci\u00F3n\\Programas en Visual C#\\MediTech.0.2\\home.cs",
-              "RelativeDocumentMoniker": "home.cs",
-              "ToolTip": "E:\\Programaci\u00F3n\\Programas en Visual C#\\MediTech.0.2\\home.cs",
-              "RelativeToolTip": "home.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAA4AAAAuAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-29T13:25:40.778Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "home.cs [Design]",
-              "DocumentMoniker": "E:\\Programaci\u00F3n\\Programas en Visual C#\\MediTech.0.2\\home.cs",
-              "RelativeDocumentMoniker": "home.cs",
-              "ToolTip": "E:\\Programaci\u00F3n\\Programas en Visual C#\\MediTech.0.2\\home.cs [Design]",
-              "RelativeToolTip": "home.cs [Design]",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-29T05:53:47.799Z",
-              "EditorCaption": " [Design]"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
               "Title": "Login.cs",
               "DocumentMoniker": "E:\\Programaci\u00F3n\\Programas en Visual C#\\MediTech.0.2\\Login.cs",
               "RelativeDocumentMoniker": "Login.cs",
               "ToolTip": "E:\\Programaci\u00F3n\\Programas en Visual C#\\MediTech.0.2\\Login.cs",
               "RelativeToolTip": "Login.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAQAAAAcAAAA",
+              "ViewState": "AQIAAC8AAAAAAAAAAAAQwEoAAAALAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-26T15:50:21.647Z",
+              "WhenOpened": "2025-12-29T21:17:33.152Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "Login.cs [Design]",
               "DocumentMoniker": "E:\\Programaci\u00F3n\\Programas en Visual C#\\MediTech.0.2\\Login.cs",
               "RelativeDocumentMoniker": "Login.cs",
               "ToolTip": "E:\\Programaci\u00F3n\\Programas en Visual C#\\MediTech.0.2\\Login.cs [Design]",
               "RelativeToolTip": "Login.cs [Design]",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-26T14:00:34.325Z",
+              "WhenOpened": "2025-12-29T21:17:28.362Z",
+              "EditorCaption": " [Design]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Pacientes.cs [Design]",
+              "DocumentMoniker": "E:\\Programaci\u00F3n\\Programas en Visual C#\\MediTech.0.2\\pages\\Pacientes.cs",
+              "RelativeDocumentMoniker": "pages\\Pacientes.cs",
+              "ToolTip": "E:\\Programaci\u00F3n\\Programas en Visual C#\\MediTech.0.2\\pages\\Pacientes.cs [Design]",
+              "RelativeToolTip": "pages\\Pacientes.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-29T19:52:07.961Z",
+              "EditorCaption": " [Design]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "home.cs [Design]",
+              "DocumentMoniker": "E:\\Programaci\u00F3n\\Programas en Visual C#\\MediTech.0.2\\pages\\home.cs",
+              "RelativeDocumentMoniker": "pages\\home.cs",
+              "ToolTip": "E:\\Programaci\u00F3n\\Programas en Visual C#\\MediTech.0.2\\pages\\home.cs [Design]",
+              "RelativeToolTip": "pages\\home.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-29T05:53:47.799Z",
               "EditorCaption": " [Design]"
             }
           ]
