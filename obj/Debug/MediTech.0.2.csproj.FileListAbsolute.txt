@@ -11,3 +11,4 @@ E:\Programación\Programas en Visual C#\MediTech.0.2\obj\Debug\MediTech._0._2.Lo
 E:\Programación\Programas en Visual C#\MediTech.0.2\obj\Debug\MediTech._0._2.home.resources
 E:\Programación\Programas en Visual C#\MediTech.0.2\obj\Debug\MediTech._0._2.pages.DashboardAdmin.resources
 E:\Programación\Programas en Visual C#\MediTech.0.2\obj\Debug\MediTech._0._2.pages.Pacientes.resources
+E:\Programación\Programas en Visual C#\MediTech.0.2\obj\Debug\MediTech._0._2.pages.NuevoPacientecs.resources

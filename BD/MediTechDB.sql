@@ -45,111 +45,38 @@ CREATE TABLE usuarios (
         FOREIGN KEY (id_rol) REFERENCES roles(id_rol)
 );
 
-
-
-
-
-
-
-
-/*Insercion de datos*/
-
-insert into roles (tipo_rol) values
-('Administrador'),
-('Doctor'),
-('Asistente'),
-('Caja'),
-('Paciente');
-
-select * from roles
-
-select * from modulos;
-
-select * from rol_modulo;
-
-
-
-insert into modulos (modulo) values
-('Usuarios'),
-('Pacientes'),
-('Citas'),
-('Historia Clinica'),
-('Tratamientos'),
-('Consentimientos'),
-('Caja'),
-('Reportes'),
-('Configuración');
-
-INSERT INTO rol_modulo (id_rol, id_modulo) VALUES
-(1,1),(1,2),(1,3),(1,4),(1,5),(1,6),(1,7),(1,8),(1,9),
-(2,2),(2,3),(2,4),(2,5),(2,6),
-(3,2),(3,3),(3,5),
-(4,2),(4,7),(4,8),
-(5,4),(5,6);
-
-INSERT INTO usuarios (
-    nombre,
-    apellido,
-    cedula,
-    password,
-    email,
-    telefono,
-    id_rol
-)
-VALUES (
-    'Administrador',
-    'General',
-    '0000000000',          -- cédula = usuario
-    'admin123',            -- ⚠️ temporal (luego usar hash desde C#)
-    'admin@meditech.com',
-    '0000000000',
-    1                       -- id_rol = Administrador
+create table tipo_identificacion(
+    id_tipo_identificacion int identity (1,1) primary key,
+    descripcion varchar(30) not null
 );
 
-SELECT * FROM usuarios;
---Ver usuario + rol
-SELECT 
-    u.id_usuario,
-    u.nombre,
-    u.apellido,
-    u.cedula,
-    r.tipo_rol,
-    u.estado
-FROM usuarios u
-INNER JOIN roles r ON u.id_rol = r.id_rol;
+CREATE TABLE pacientes (
+    id_paciente INT IDENTITY(1,1) PRIMARY KEY,
+    primer_nombre VARCHAR(50) NOT NULL,
+    segundo_nombre VARCHAR(50) NULL,     -- Nombres (segundos opcionales)
+    primer_apellido VARCHAR(50) NOT NULL,
+    segundo_apellido VARCHAR(50) NULL, -- Apellidos (segundo opcional)
+    id_tipo_identificacion INT NOT NULL, -- Identificación
+    numero_identificacion VARCHAR(30) NOT NULL,
+    sexo CHAR(1) NOT NULL 
+        CHECK (sexo IN ('M','F')),
+    fecha_nacimiento DATE NOT NULL,
+    ocupacion VARCHAR(100),
+    direccion VARCHAR(200),
+    telefono INT,
 
-SELECT 
-    r.tipo_rol,
-    m.modulo
-FROM rol_modulo rm
-INNER JOIN roles r ON rm.id_rol = r.id_rol
-INNER JOIN modulos m ON rm.id_modulo = m.id_modulo
-ORDER BY r.id_rol, m.id_modulo;
+    -- Control del sistema
+    fecha_registro DATETIME NOT NULL DEFAULT GETDATE(),
+    estado BIT NOT NULL DEFAULT 1,
+
+    CONSTRAINT uq_identificacion UNIQUE (id_tipo_identificacion, numero_identificacion),
+
+    CONSTRAINT fk_paciente_tipo_identificacion
+        FOREIGN KEY (id_tipo_identificacion)
+        REFERENCES tipo_identificacion(id_tipo_identificacion)
+);
 
 
 
-/*Procedimiento de almacenado*/
 
--- funcionalidad: validar usuario para inicio de sesión
-create procedure login_usuario
-    @cedula varchar(30),
-    @password varchar(255)
-   as
-   begin
-    
-select 
-    u.id_usuario,
-    u.nombre,
-    u.apellido,
-    u.cedula,
-    r.id_rol,
-    r.tipo_rol
-
-    from usuarios u 
-    inner join roles r on u.id_rol = r.id_rol
-    where u.cedula = @cedula
-        and u.password = @password
-        and u.estado = 1;
-    end;
-    go
 
