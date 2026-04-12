@@ -1,0 +1,539 @@
+@model MediTech.Backend.Models.Cuenta
+
+@{
+    ViewData["Title"] = "Detalle de Cuenta #" + Model.IdCuenta;
+    var monedas = ViewBag.Monedas as List<MediTech.Backend.Models.Moneda>;
+    decimal totalPagado = ViewBag.TotalPagado;
+    decimal saldoPendiente = ViewBag.SaldoPendiente;
+    bool isCancelada = (Model.TotalFinal ?? 0) == 0;
+    bool isPagada = !isCancelada && saldoPendiente <= 0 && (Model.TotalFinal ?? 0) > 0;
+    var nombrePaciente = Model.Paciente?.Persona != null
+        ? $"{Model.Paciente.Persona.PrimerNombre} {Model.Paciente.Persona.PrimerApellido}"
+        : "N/A";
+}
+
+<div class="page-header page-header-premium mb-4">
+    <div>
+        <h2 class="display-6 fw-bold text-gradient-primary mb-0">Detalle de Cuenta #@Model.IdCuenta</h2>
+        <p class="text-muted d-none d-sm-block">Gestión de cobros, pagos y estados de cuenta</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2 justify-content-start justify-content-sm-end">
+        <a asp-action="Index" class="btn btn-outline-secondary shadow-sm px-3" id="btnVolver" style="border-radius:12px;">
+            <i class="fas fa-arrow-left me-1"></i> <span class="d-none d-sm-inline">Volver</span>
+        </a>
+        @if (!isCancelada && !isPagada)
+        {
+            <button type="button" class="btn btn-success shadow-sm px-4" data-bs-toggle="modal" data-bs-target="#registrarPagoModal" id="btnRegistrarPago" style="border-radius:12px;">
+                <i class="fas fa-dollar-sign me-1"></i> <span class="d-none d-sm-inline">Registrar Pago</span><span class="d-sm-none">Pagar</span>
+            </button>
+        }
+        @if (!isCancelada && !isPagada && totalPagado == 0 && (Model.TotalFinal ?? 0) > 0)
+        {
+            <button type="button" class="btn btn-outline-danger shadow-sm px-3" id="btnAnularCuenta" style="border-radius:12px;">
+                <i class="fas fa-ban"></i>
+            </button>
+        }
+    </div>
+</div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- Info Card -->
+        <div class="col-lg-4 col-sm-12">
+            <div class="card card-premium border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="avatar-lg bg-soft-primary rounded-circle mx-auto d-flex align-items-center justify-content-center mb-3" style="width:70px;height:70px;">
+                            <i class="fas fa-file-invoice-dollar text-primary fs-3"></i>
+                        </div>
+                        <span class="badge @(isCancelada ? "bg-soft-secondary text-secondary" : (isPagada ? "bg-success" : "bg-warning text-dark")) rounded-pill fs-6 px-3 py-2">
+                            @(isCancelada ? "✕ CANCELADA" : (isPagada ? "✓ PAGADA" : "⏳ PENDIENTE"))
+                        </span>
+                    </div>
+
+                    <ul class="list-unstyled">
+                        <li class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted">Paciente</span>
+                            <span class="fw-bold">@nombrePaciente</span>
+                        </li>
+                        <li class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted">Moneda</span>
+                            <span class="fw-bold">@Model.MonedaBase?.Nombre (@Model.MonedaBase?.Codigo)</span>
+                        </li>
+                        <li class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted">Fecha</span>
+                            <span class="fw-bold">@Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</span>
+                        </li>
+                        <li class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted">Tasa de Cambio</span>
+                            <span class="fw-bold">@ViewBag.TasaCambio</span>
+                        </li>
+                    </ul>
+
+                    <div class="bg-light rounded-3 p-3 mt-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Subtotal:</span>
+                            <span class="fw-bold">@Model.MonedaBase?.Simbolo @Model.TotalBruto?.ToString("N2")</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Descuento:</span>
+                            <span class="fw-bold text-danger">- @Model.MonedaBase?.Simbolo @Model.Descuento.ToString("N2")</span>
+                        </div>
+                        <hr class="my-2">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="fw-bold fs-5">Total:</span>
+                            <span class="fw-bold fs-5 text-primary">@Model.MonedaBase?.Simbolo @Model.TotalFinal?.ToString("N2")</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Pagado:</span>
+                            <span class="fw-bold text-success">@Model.MonedaBase?.Simbolo @totalPagado.ToString("N2")</span>
+                        </div>
+                        <hr class="my-2">
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold fs-5">Saldo:</span>
+                            <span class="fw-bold fs-5 @(saldoPendiente > 0 ? "text-danger" : "text-success")">@Model.MonedaBase?.Simbolo @saldoPendiente.ToString("N2")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Items & Payments -->
+        <div class="col-lg-8 col-sm-12">
+            <!-- Items de la Cuenta -->
+            <div class="card card-premium border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pt-4 px-4">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-list text-primary me-2"></i>Ítems de la Cuenta</h5>
+                </div>
+                <div class="card-body px-0 px-md-4">
+                    <div class="table-responsive-premium">
+                        <table class="table align-middle mb-0">
+                            <thead class="bg-light-faded">
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th>Descripción</th>
+                                    <th class="text-center">Cant.</th>
+                                    <th class="text-end">Precio Unit.</th>
+                                    <th class="text-end">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Detalles)
+                                {
+                                    <tr>
+                                        <td>
+                                            <span class="badge @(item.TipoItem == "TRATAMIENTO" ? "bg-soft-success text-success" : "bg-soft-info text-info") rounded-pill">
+                                                @item.TipoItem
+                                            </span>
+                                        </td>
+                                        <td class="fw-semibold">@item.Descripcion</td>
+                                        <td class="text-center">@item.Cantidad</td>
+                                        <td class="text-end">@Model.MonedaBase?.Simbolo @item.PrecioUnitario?.ToString("N2")</td>
+                                        <td class="text-end fw-bold">@Model.MonedaBase?.Simbolo @item.Subtotal?.ToString("N2")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historial de Pagos -->
+            <div class="card card-premium border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-money-bill-wave text-success me-2"></i>Historial de Pagos</h5>
+                    <span class="badge bg-primary rounded-pill">@Model.Pagos.Count pagos</span>
+                </div>
+                <div class="card-body px-0 px-md-4">
+                    @if (!Model.Pagos.Any())
+                    {
+                        <div class="text-center py-4 text-muted">
+                            <i class="fas fa-receipt fa-3x mb-3 d-block opacity-25"></i>
+                            Aún no se han registrado pagos para esta cuenta.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive-premium">
+                            <table class="table align-middle mb-0">
+                                <thead class="bg-light-faded">
+                                    <tr>
+                                        <th># Pago</th>
+                                        <th>Método</th>
+                                        <th class="text-end">Monto Neto</th>
+                                        <th class="text-end text-primary small">Recibido</th>
+                                        <th class="text-end text-success small">Vuelto</th>
+                                        <th>Moneda</th>
+                                        <th>Fecha</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var pago in Model.Pagos.OrderByDescending(p => p.FechaPago))
+                                    {
+                                        <tr>
+                                            <td><span class="badge bg-light text-dark">#@pago.IdPago</span></td>
+                                            <td>
+                                                <span class="badge @GetMetodoClass(pago.MetodoPago) rounded-pill">
+                                                    <i class="@GetMetodoIcon(pago.MetodoPago) me-1"></i>@pago.MetodoPago
+                                                </span>
+                                            </td>
+                                            <td class="text-end fw-bold text-success">@pago.Moneda?.Simbolo @pago.Monto?.ToString("N2")</td>
+                                            <td class="text-end text-primary small">@(pago.MontoRecibido > 0 ? pago.Moneda?.Simbolo + " " + pago.MontoRecibido?.ToString("N2") : "-")</td>
+                                            <td class="text-end text-success small">@(pago.Vuelto > 0 ? Model.MonedaBase?.Simbolo + " " + pago.Vuelto?.ToString("N2") : "-")</td>
+                                            <td>@pago.Moneda?.Nombre</td>
+                                            <td class="text-muted small">@pago.FechaPago.ToString("dd/MM/yyyy HH:mm")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="currency-metadata" 
+     data-base-id="@ViewBag.IdMonedaBase" 
+     data-tasa="@ViewBag.TasaCambio"
+     data-saldo="@ViewBag.SaldoPendiente"
+     data-tasa-origen="@ViewBag.TasaOrigenId"
+     data-tasa-destino="@ViewBag.TasaDestinoId"
+     style="display:none;"></div>
+
+<!-- Modal Registrar Pago -->
+<div class="modal fade" id="registrarPagoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 1.2rem;">
+            <div class="modal-header bg-success bg-opacity-10 border-0 pt-4 px-4">
+                <h5 class="modal-title fw-bold text-success">
+                    <i class="fas fa-dollar-sign me-2"></i>Registrar Pago
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formRegistrarPago" asp-action="RegistrarPago" method="post">
+                <div class="modal-body p-4">
+                    <input type="hidden" name="idCuenta" value="@Model.IdCuenta" />
+                    <input type="hidden" name="idMoneda" id="hiddenIdMoneda" value="@Model.IdMonedaBase" />
+                    <input type="hidden" name="monto" id="hiddenMontoPagar" value="@saldoPendiente" />
+
+                    <!-- Header Saldo -->
+                    <div class="bg-soft-danger rounded-4 p-3 mb-4 text-center border border-danger border-opacity-10">
+                        <span class="text-danger-emphasis small fw-bold text-uppercase d-block mb-1">Saldo Pendiente</span>
+                        <h2 class="fw-bold text-danger mb-0 font-monospace">@Model.MonedaBase?.Simbolo @saldoPendiente.ToString("N2")</h2>
+                    </div>
+
+                    <!-- Selector de Moneda (Iconos) -->
+                    <div class="text-center mb-4">
+                        <label class="form-label fw-bold small text-secondary d-block mb-2">Moneda del Pago</label>
+                        <div class="btn-group w-100 shadow-sm" role="group">
+                            @if (monedas != null)
+                            {
+                                foreach (var m in monedas)
+                                {
+                                    <input type="radio" class="btn-check" name="currency_toggle" id="btn_cur_@m.IdMoneda" 
+                                           value="@m.IdMoneda" data-simbolo="@m.Simbolo" data-codigo="@m.Codigo"
+                                           data-base="@(m.IdMoneda == Model.IdMonedaBase ? "true" : "false")"
+                                           @(m.IdMoneda == Model.IdMonedaBase ? "checked" : "")>
+                                    <label class="btn btn-outline-primary py-2 fw-bold" for="btn_cur_@m.IdMoneda">
+                                        <i class="fas @(m.Codigo == "NIO" ? "fa-money-bill-alt" : "fa-dollar-sign") me-2"></i>@m.Codigo
+                                    </label>
+                                }
+                            }
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-secondary">Monto a Pagar (<span class="cur-code-label">@Model.MonedaBase?.Codigo</span>)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0"><span class="cur-sym-label">@Model.MonedaBase?.Simbolo</span></span>
+                                <input type="text" id="displayMontoPagar" class="form-control bg-light border-0 fw-bold" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-secondary">Vía de Pago <span class="text-danger">*</span></label>
+                            <select name="metodoPago" id="selectMetodoPago" class="form-select border-0 bg-light fw-semibold" required>
+                                <option value="EFECTIVO">💵 Efectivo</option>
+                                <option value="TARJETA">💳 Tarjeta</option>
+                                <option value="TRANSFERENCIA">🏦 Transferencia</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Sección Efectivo (Recibido y Vuelto) -->
+                    <div id="sectionEfectivo" class="mt-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-secondary">Monto Recibido (<span class="cur-code-label">@Model.MonedaBase?.Codigo</span>)</label>
+                            <div class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden">
+                                <span class="input-group-text border-0 bg-soft-primary text-primary"><span class="cur-sym-label">@Model.MonedaBase?.Simbolo</span></span>
+                                <input type="number" id="inputMontoRecibido" class="form-control border-0 bg-light fw-bold" step="0.01" placeholder="0.00">
+                            </div>
+                        </div>
+
+                        <div id="displayVuelto" class="p-3 bg-soft-success rounded-4 border border-success border-opacity-10 text-center" style="display:none;">
+                            <span class="text-success-emphasis small fw-bold text-uppercase d-block mb-1">Vuelto a Entregar (@Model.MonedaBase?.Codigo)</span>
+                            <h3 class="fw-bold text-success mb-0 font-monospace">@Model.MonedaBase?.Simbolo <span id="vueltoValor">0.00</span></h3>
+                        </div>
+                    </div>
+
+                    <div id="pagoInsuficiente" class="alert alert-danger mt-3 py-2 px-3 small border-0 shadow-sm" style="display:none;">
+                        <i class="fas fa-exclamation-circle me-1"></i> El monto recibido no cubre el total.
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold text-muted" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-5 fw-bold shadow-sm" id="btnSubmitPago">
+                        <i class="fas fa-check-circle me-2"></i>Confirmar Cobro
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetMetodoClass(string? metodo) => metodo switch
+    {
+        "EFECTIVO" => "bg-soft-success text-success",
+        "TARJETA" => "bg-soft-primary text-primary",
+        "TRANSFERENCIA" => "bg-soft-info text-info",
+        _ => "bg-light text-dark"
+    };
+
+    string GetMetodoIcon(string? metodo) => metodo switch
+    {
+        "EFECTIVO" => "fas fa-money-bill-wave",
+        "TARJETA" => "fas fa-credit-card",
+        "TRANSFERENCIA" => "fas fa-university",
+        _ => "fas fa-question"
+    };
+}
+
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Elementos UI
+        const formPago = document.getElementById('formRegistrarPago');
+        const radioMonedas = document.querySelectorAll('input[name="currency_toggle"]');
+        const inputRecibido = document.getElementById('inputMontoRecibido');
+        const selectMetodo = document.getElementById('selectMetodoPago');
+        const displayPagar = document.getElementById('displayMontoPagar');
+        const displayVuelto = document.getElementById('displayVuelto');
+        const vueltoValor = document.getElementById('vueltoValor');
+        const sectionEfectivo = document.getElementById('sectionEfectivo');
+        const alertInsuficiente = document.getElementById('pagoInsuficiente');
+        const btnSubmit = document.getElementById('btnSubmitPago');
+        
+        // Elementos Hidden (Data)
+        const hiddenIdMoneda = document.getElementById('hiddenIdMoneda');
+        const hiddenMontoPagar = document.getElementById('hiddenMontoPagar');
+        const meta = document.getElementById('currency-metadata');
+        
+        // Etiquetas dinámicas
+        const codeLabels = document.querySelectorAll('.cur-code-label');
+        const symLabels = document.querySelectorAll('.cur-sym-label');
+
+        if (!meta) return;
+
+        // Datos del servidor
+        const idMonedaBase = parseInt(meta.dataset.baseId) || 0;
+        const saldoPendienteBase = parseFloat(meta.dataset.saldo.replace(',', '.')) || 0;
+        const tasa = parseFloat(meta.dataset.tasa.replace(',', '.')) || 1;
+        const idTasaOrigen = parseInt(meta.dataset.tasaOrigen) || 0;
+        const idTasaDestino = parseInt(meta.dataset.tasaDestino) || 0;
+        const simboloBase = "@Model.MonedaBase?.Simbolo";
+        const codigoBase = "@Model.MonedaBase?.Codigo";
+
+        function updateCalculations() {
+            // 1. Obtener moneda seleccionada
+            const selectedRadio = document.querySelector('input[name="currency_toggle"]:checked');
+            if (!selectedRadio) return;
+
+            const idMonedaPago = parseInt(selectedRadio.value);
+            const simboloPago = selectedRadio.dataset.simbolo;
+            const codigoPago = selectedRadio.dataset.codigo;
+            const isBase = selectedRadio.dataset.base === "true";
+
+            // 2. Calcular cuánto se debe pagar en la moneda seleccionada
+            let montoPagarEnDivisa = saldoPendienteBase;
+            
+            // Lógica basada en Códigos (Infalible)
+            if (!isBase) {
+                if (codigoBase === "NIO" && codigoPago === "USD") {
+                    // NIO -> USD: Dividir entre tasa (180 / 36.60 = 4.92)
+                    montoPagarEnDivisa = saldoPendienteBase / tasa;
+                } else if (codigoBase === "USD" && codigoPago === "NIO") {
+                    // USD -> NIO: Multiplicar por tasa (10 * 36.60 = 366)
+                    montoPagarEnDivisa = saldoPendienteBase * tasa;
+                } else {
+                    // Fallback genérico basado en valor de la tasa
+                    if (tasa > 1) {
+                        // Asumimos tasa tipo USD->NIO (ej. 36.60)
+                        // Para llegar a la moneda de "valor mayor" (USD), dividimos.
+                        montoPagarEnDivisa = saldoPendienteBase / tasa;
+                    } else {
+                        montoPagarEnDivisa = saldoPendienteBase * tasa;
+                    }
+                }
+            }
+
+            // Actualizar inputs hidden para el servidor
+            hiddenIdMoneda.value = idMonedaPago;
+            hiddenMontoPagar.value = montoPagarEnDivisa.toFixed(4);
+
+            // Actualizar etiquetas UI
+            displayPagar.value = montoPagarEnDivisa.toFixed(2);
+            codeLabels.forEach(l => l.textContent = codigoPago);
+            symLabels.forEach(s => s.textContent = simboloPago);
+
+            console.log(`[CONVERSION] Base: ${codigoBase} (${saldoPendienteBase}), Pago: ${codigoPago} (${montoPagarEnDivisa}), Tasa: ${tasa}`);
+
+            // 3. Manejar Vía de Pago y Vuelto
+            const metodo = selectMetodo.value;
+            if (metodo === "EFECTIVO") {
+                sectionEfectivo.style.display = 'block';
+                const recibido = parseFloat(inputRecibido.value) || 0;
+                
+                // El vuelto SIEMPRE se calcula en moneda BASE
+                // Convertimos el "Recibido" a moneda base primero
+                let recibidoEnBase = recibido;
+                if (!isBase) {
+                    if (codigoBase === "NIO" && codigoPago === "USD") {
+                        // Recibido en USD, Base en NIO: Multiplicar por tasa (20 USD * 36.60 = 732 NIO)
+                        recibidoEnBase = recibido * tasa;
+                    } else if (codigoBase === "USD" && codigoPago === "NIO") {
+                        // Recibido en NIO, Base en USD: Dividir entre tasa (366 NIO / 36.60 = 10 USD)
+                        recibidoEnBase = recibido / tasa;
+                    } else {
+                         if (tasa > 1) recibidoEnBase = recibido * tasa;
+                         else recibidoEnBase = recibido / tasa;
+                    }
+                }
+
+                const vueltoEnBase = recibidoEnBase - saldoPendienteBase;
+                console.log(`[VUELTO] Recibido: ${recibido} (${recibidoEnBase} Base), Vuelto: ${vueltoEnBase}`);
+
+                if (recibido > 0 && recibidoEnBase < (saldoPendienteBase - 0.009)) { // Margen mínimo
+                    alertInsuficiente.style.display = 'block';
+                    displayVuelto.style.display = 'none';
+                    btnSubmit.disabled = true;
+                } else {
+                    alertInsuficiente.style.display = 'none';
+                    if (recibido > 0) {
+                        displayVuelto.style.display = 'block';
+                        vueltoValor.textContent = vueltoEnBase.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    } else {
+                        displayVuelto.style.display = 'none';
+                    }
+                    btnSubmit.disabled = false;
+                }
+            } else {
+                sectionEfectivo.style.display = 'none';
+                alertInsuficiente.style.display = 'none';
+                btnSubmit.disabled = false;
+            }
+        }
+
+        // Listeners
+        radioMonedas.forEach(r => r.addEventListener('change', updateCalculations));
+        inputRecibido.addEventListener('input', updateCalculations);
+        selectMetodo.addEventListener('change', updateCalculations);
+
+        // AJAX Submission
+        formPago.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('btnSubmitPago');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Procesando...';
+
+            const formData = new FormData(formPago);
+            
+            // Añadir manualmente el monto recibido ya que no tiene "name" en el input
+            formData.append('montoRecibido', inputRecibido.value || 0);
+
+            fetch(formPago.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('registrarPagoModal'));
+                    modal.hide();
+                    MediToast.success(data.message);
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    MediToast.error(data.message);
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+            })
+            .catch(error => {
+                MediToast.error("Error al procesar el pago");
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            });
+        });
+
+        // Anular Cuenta
+        const btnAnular = document.getElementById('btnAnularCuenta');
+        if (btnAnular) {
+            btnAnular.addEventListener('click', function() {
+                MediConfirm.show({
+                    title: '¿Anular Cuenta permanentemente?',
+                    message: 'Esta acción liberará los cargos y devolverá el stock de productos al almacén.',
+                    variant: 'danger',
+                    confirmText: 'Sí, Anular',
+                    icon: 'fa-ban'
+                }).then(confirmed => {
+                    if (confirmed) {
+                        const csrfToken = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                        const formData = new FormData();
+                        formData.append('id', "@Model.IdCuenta");
+                        formData.append('__RequestVerificationToken', csrfToken);
+
+                        fetch('/Caja/AnularCuenta', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                MediToast.success(data.message);
+                                setTimeout(() => location.href = '/Caja/Index', 1500);
+                            } else {
+                                MediToast.error(data.message);
+                            }
+                        });
+                    }
+                });
+            });
+        }
+
+        updateCalculations();
+    });
+</script>
+}
+

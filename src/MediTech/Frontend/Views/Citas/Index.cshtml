@@ -1,0 +1,492 @@
+@{
+    ViewData["Title"] = "Agenda de Citas";
+    Layout = "_Layout";
+}
+
+
+<div class="p-4" style="background-color: #F3F4F6; min-height: calc(100vh - 60px);">
+    @Html.AntiForgeryToken()
+
+    <!-- Calendar Card Container -->
+    <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+        <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+
+            <!-- Left Controls: Prev, Next, Today -->
+            <div class="d-flex gap-2 align-items-center order-2 order-md-1">
+                <button class="btn btn-light border bg-white px-3 py-1 fw-semibold custom-cal-nav" id="btnPrevMonth">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="btn btn-light border bg-white px-3 py-1 fw-semibold custom-cal-nav" id="btnNextMonth">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <button class="btn btn-light border bg-white px-3 px-md-4 py-1 fw-semibold custom-cal-nav" id="btnToday">
+                    Hoy
+                </button>
+            </div>
+
+            <!-- Center Title -->
+            <div class="text-center order-1 order-md-2">
+                <small class="text-uppercase fw-bold text-muted mb-1 d-block" style="letter-spacing: 1px; font-size:0.85rem;">Agenda Médica</small>
+                <h5 class="mb-0 fw-bold text-dark" id="calendarTitle"></h5>
+            </div>
+
+            <!-- Right Controls: View Switcher -->
+            <div class="btn-group order-3" role="group">
+                <button type="button" class="btn btn-view btn-sm bg-white text-secondary border px-3" id="btnViewMonth">Mes</button>
+                <button type="button" class="btn btn-view btn-sm bg-white text-secondary border px-3" id="btnViewWeek">Sem</button>
+                <button type="button" class="btn btn-view btn-sm bg-white text-secondary border px-3" id="btnViewDay">Día</button>
+            </div>
+
+        </div>
+        <div class="card-body p-4 position-relative">
+            <div id="fullcalendar-loading" class="position-absolute top-50 start-50 translate-middle text-center" style="z-index: 10;">
+                <div class="spinner-border text-primary mb-2" role="status"></div>
+                <div class="text-muted small fw-medium">Preparando agenda...</div>
+            </div>
+            <div id="fullcalendar" style="min-height: 650px; opacity: 0; transition: opacity 0.3s ease;"></div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button: Agenda de Hoy -->
+    <button class="btn shadow-lg position-fixed d-flex align-items-center"
+        style="bottom: 60px; right: 40px; border-radius: 50px; z-index: 1040; padding: 12px 24px; font-weight: 600; background-color: #4F46E5; color: white; border: none; transition: transform 0.2s;"
+        data-bs-toggle="offcanvas" data-bs-target="#agendaHoy" onmouseover="this.style.transform='scale(1.05)'"
+        onmouseout="this.style.transform='scale(1)'">
+        <i class="fas fa-calendar-day me-2 fs-5"></i> Ver agenda de hoy
+    </button>
+</div>
+
+<!-- Offcanvas de Agenda de Hoy -->
+<div class="offcanvas offcanvas-end custom-offcanvas" tabindex="-1" id="agendaHoy" aria-labelledby="agendaHoyLabel">
+    <div class="offcanvas-header border-bottom py-4 px-4">
+        <h5 class="offcanvas-title fw-bold" id="agendaHoyLabel" style="color: #4F46E5;">
+            <i class="bi bi-calendar3 me-2"></i>Agenda de Hoy
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body p-4" id="agendaHoyList" style="background-color: #F9FAFB;">
+        <!-- Content loaded via JS -->
+    </div>
+</div>
+
+<!-- Event Popover Modal (Replace absolute popover with a centered modal for better UI mimicking 'citas 2.png') -->
+<div class="modal fade" id="modalDetalleCita" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark ms-2">Detalle de Cita</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body px-4 pt-4 pb-2">
+                <div class="text-center mb-4">
+                    <h3 class="fw-bold text-dark mb-1" id="detailPacienteNombre"></h3>
+                    <p class="text-muted small mb-0" id="detailPacienteId"></p>
+                    <span class="badge bg-warning text-dark mt-2" id="detailProspectBadge" style="display:none;">PROSPECTO</span>
+                </div>
+
+                <div class="d-flex flex-column gap-3 mb-4">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box me-3"><i class="bi bi-clock text-secondary"></i></div>
+                        <div>
+                            <p class="mb-0 text-muted small">Horario</p>
+                            <p class="mb-0 fw-semibold text-dark" id="detailHorario"></p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box me-3"><i class="bi bi-calendar text-secondary"></i></div>
+                        <div>
+                            <p class="mb-0 text-muted small">Fecha</p>
+                            <p class="mb-0 fw-semibold text-dark" id="detailFecha"></p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box me-3"><i class="bi bi-telephone text-secondary"></i></div>
+                        <div>
+                            <p class="mb-0 text-muted small">Teléfono</p>
+                            <p class="mb-0 fw-semibold text-dark" id="detailTelefono"></p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box me-3"><i class="bi bi-heart-pulse text-secondary"></i></div>
+                        <div>
+                            <p class="mb-0 text-muted small">Tratamiento</p>
+                            <span class="badge rounded-pill fw-normal mt-1" id="detailTratamiento"
+                                style="background-color: #EEF2FF; color: #4F46E5; font-size: 0.85rem; padding: 6px 12px;"></span>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start mt-2" id="detailObsRow" style="display:none !important;">
+                        <div class="icon-box me-3"><i class="bi bi-journal-text text-secondary"></i></div>
+                        <div>
+                            <p class="mb-0 text-muted small">Observaciones</p>
+                            <p class="mb-0 text-dark small" id="detailObservaciones"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer border-top-0 px-4 pb-4 pt-2 d-flex gap-2">
+                <button type="button" class="btn btn-outline-danger w-100 fw-semibold py-2" id="btnCancelCita" style="border-radius: 8px;">
+                    Cancelar Cita
+                </button>
+                <div class="d-flex w-100 gap-2" id="btnGroupActions">
+                    <!-- Dynamic buttons based on status injected by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap Modal Create Appointment -->
+<div class="modal fade" id="modalCrearCita" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
+            <div class="modal-header bg-light border-bottom-0 pb-0" style="border-radius: 16px 16px 0 0;">
+                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-calendar-plus me-2 text-primary"></i>Agendar Cita</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="alert alert-danger d-none" id="modalAlert" style="font-size: 0.85rem; border-radius: 8px;">
+                </div>
+
+                <form id="formCita">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="modalFecha" name="Fecha" required>
+                    <input type="hidden" name="IdTratamiento" id="modalTratamientoId">
+                    <input type="hidden" name="PacienteId" id="PacienteId">
+                    <input type="hidden" name="PosiblePacienteId" id="PosiblePacienteId">
+
+                    <!-- Section: Patient Type Selection -->
+                    <div class="mb-2">
+                        <div class="btn-group w-100 p-1 bg-white border" style="border-radius: 10px; height: 38px;">
+                            <input type="radio" class="btn-check" name="tipoPaciente" value="paciente" id="tipoPacienteExistente" checked onchange="toggleFields('paciente')">
+                            <label class="btn btn-outline-primary border-0 d-flex align-items-center justify-content-center gap-1" for="tipoPacienteExistente" style="border-radius: 8px; font-weight: 600; font-size: 0.85rem;">
+                                <i class="bi bi-person-check fs-6"></i> Paciente
+                            </label>
+
+                            <input type="radio" class="btn-check" name="tipoPaciente" value="prospecto" id="tipoNuevoProspecto" onchange="toggleFields('prospecto')">
+                            <label class="btn btn-outline-primary border-0 d-flex align-items-center justify-content-center gap-1" for="tipoNuevoProspecto" style="border-radius: 8px; font-weight: 600; font-size: 0.85rem;">
+                                <i class="bi bi-person-plus fs-6"></i> Prospecto
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Panel: Paciente Registrado -->
+                    <div id="pacientePanel" class="mb-2 bg-light border-0" style="border-radius: 10px; padding: 0.4rem;">
+                        <label class="form-label x-small fw-bold text-secondary mb-1" style="font-size: 0.75rem;">Buscar Paciente</label>
+                        <div class="input-group position-relative">
+                            <span class="input-group-text bg-white border-end-0" style="border-radius: 6px 0 0 6px; height: 34px;"><i class="bi bi-search text-muted" style="font-size: 0.8rem;"></i></span>
+                            <input type="text" id="modalPacienteSearch" class="form-control border-start-0" placeholder="Nombre o Cédula..." autocomplete="off" style="border-radius: 0 6px 6px 0; height: 34px; font-size: 0.85rem;">
+                            <div id="pacienteSearchResults" class="list-group position-absolute shadow-sm" style="z-index: 1050; max-height: 180px; overflow-y: auto; display: none; width: 100%; top: 100%; left: 0; margin-top: 1px; border-radius: 6px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Panel: Nuevo Prospecto -->
+                    <div id="prospectoPanel" class="bg-light border-0 mb-2" style="border-radius: 10px; padding: 0.4rem; display: none;">
+                        <div class="row g-1">
+                            <div class="col-6">
+                                <label class="form-label x-small fw-bold text-secondary mb-0" style="font-size: 0.7rem;">1er Nombre *</label>
+                                <input type="text" id="modalProspectoNombre" class="form-control" placeholder="Nombre" style="height: 32px; font-size: 0.8rem;">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label x-small fw-bold text-secondary mb-0" style="font-size: 0.7rem;">2do Nombre</label>
+                                <input type="text" id="modalProspectoSegundoNombre" class="form-control" placeholder="Opcional" style="height: 32px; font-size: 0.8rem;">
+                            </div>
+                            <div class="col-6 mt-1">
+                                <label class="form-label x-small fw-bold text-secondary mb-0" style="font-size: 0.7rem;">1er Apellido *</label>
+                                <input type="text" id="modalProspectoApellido" class="form-control" placeholder="Apellido" style="height: 32px; font-size: 0.8rem;">
+                            </div>
+                            <div class="col-6 mt-1">
+                                <label class="form-label x-small fw-bold text-secondary mb-0" style="font-size: 0.7rem;">2do Apellido</label>
+                                <input type="text" id="modalProspectoSegundoApellido" class="form-control" placeholder="Opcional" style="height: 32px; font-size: 0.8rem;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section: Identification (Phone) -->
+                    <div class="mb-2">
+                        <label class="form-label x-small fw-bold text-secondary mb-1" style="font-size: 0.75rem;">Teléfono Celular *</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0" style="border-radius: 6px 0 0 6px; height: 34px;"><i class="bi bi-telephone text-muted" style="font-size: 0.8rem;"></i></span>
+                            <input type="tel" name="Telefono" id="modalTelefono" class="form-control bg-light border-start-0" placeholder="Ej: 8888-8888" required style="border-radius: 0 6px 6px 0; border-color: #E5E7EB; height: 34px; font-size: 0.85rem;" />
+                        </div>
+                        <div id="phoneMatchAlert" class="alert alert-warning mt-1 py-1 d-none" style="font-size: 0.7rem; border-radius: 6px; border-left: 3px solid #f59e0b;">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i> Match encontrado.
+                            <button type="button" class="btn btn-link p-0 ms-1 fw-bold text-decoration-none" style="font-size: 0.7rem;" onclick="useExistingRecord()">Vincular</button>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <label class="form-label x-small fw-bold text-secondary mb-1" style="font-size: 0.75rem;">Inicio</label>
+                            <input type="time" name="HoraInicio" id="HoraInicio" class="form-control bg-light" required style="border-radius: 6px; border-color: #E5E7EB; height: 34px; font-size: 0.85rem;">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label x-small fw-bold text-secondary mb-1" style="font-size: 0.75rem;">Fin</label>
+                            <input type="time" name="HoraFin" id="HoraFin" class="form-control bg-light" required style="border-radius: 6px; border-color: #E5E7EB; height: 34px; font-size: 0.85rem;">
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label x-small fw-bold text-secondary mb-1" style="font-size: 0.75rem;">Tratamiento / Servicio *</label>
+                        <div class="input-group position-relative">
+                            <span class="input-group-text bg-light border-end-0" style="border-radius: 6px 0 0 6px; height: 34px;"><i class="bi bi-heart-pulse text-muted" style="font-size: 0.8rem;"></i></span>
+                            <input type="text" id="modalTratamientoSearch" class="form-control bg-light border-start-0" placeholder="Buscar..." autocomplete="off" style="border-radius: 0 6px 6px 0; border-color: #E5E7EB; height: 34px; font-size: 0.85rem;">
+                            <div id="tratamientoSearchResults" class="list-group position-absolute shadow-sm" style="z-index: 1050; max-height: 180px; overflow-y: auto; display: none; width: 100%; top: 100%; left: 0; margin-top: 1px; border-radius: 6px;"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <textarea name="Observaciones" id="modalObs" class="form-control bg-light" rows="1" placeholder="Observaciones opcionales..." style="border-radius: 6px; border-color: #E5E7EB; font-size: 0.8rem;"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top-0 px-4 pb-4 pt-0">
+                <button type="button" class="btn btn-light fw-semibold" data-bs-dismiss="modal" style="border-radius: 8px;">Cancelar</button>
+                <button type="button" class="btn text-white fw-semibold px-4" id="btnGuardarCita" onclick="guardarCita()" style="border-radius: 8px; background-color: #4F46E5;">
+                    Agendar Cita
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Convertir Prospecto -->
+<div class="modal fade" id="modalConvertir" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
+            <div class="modal-header text-white border-0 py-3 px-4" style="border-radius: 16px 16px 0 0; background-color: #4F46E5;">
+                <h5 class="modal-title fw-bold"><i class="bi bi-person-check me-2"></i>Convertir a Paciente Oficial</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-white">
+                <form id="formConvertir">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="idCita" id="convertIdCita">
+                    <input type="hidden" name="idPosiblePaciente" id="convertIdPosiblePaciente">
+
+                    <div class="alert alert-info py-2 small mb-4" style="background-color: #EEF2FF; color: #4F46E5; border: none; border-radius: 8px;">
+                        <i class="bi bi-info-circle-fill me-1"></i> El prospecto se formalizará como paciente. Complete la información requerida por el sistema.
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary">Tipo Identificación</label>
+                            <select name="idTipoIdentificacion" class="form-select bg-light" required style="border-radius: 8px; border-color: #E5E7EB;">
+                                @foreach (var item in (SelectList)ViewBag.TiposIdentificacion)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary">N° Identificación</label>
+                            <input type="text" name="numIdentificacion" class="form-control bg-light" placeholder="Ej: 001-000000-0000A" required style="border-radius: 8px; border-color: #E5E7EB;">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary">Género</label>
+                            <select name="idGenero" class="form-select bg-light" required style="border-radius: 8px; border-color: #E5E7EB;">
+                                @foreach (var item in (SelectList)ViewBag.Generos)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary">Fecha de Nacimiento</label>
+                            <input type="date" name="fechaNacimiento" class="form-control bg-light" required style="border-radius: 8px; border-color: #E5E7EB;">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary">Dirección</label>
+                            <input type="text" name="direccion" class="form-control bg-light" placeholder="Ciudad, Barrio, etc." style="border-radius: 8px; border-color: #E5E7EB;">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary">Contacto Emergencia</label>
+                            <input type="text" name="contactoEmergencia" class="form-control bg-light" placeholder="Nombre completo" style="border-radius: 8px; border-color: #E5E7EB;">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary">Teléfono Emergencia</label>
+                            <input type="tel" name="telefonoEmergencia" class="form-control bg-light" placeholder="Ej: 8888-8888" style="border-radius: 8px; border-color: #E5E7EB;">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 px-4 pb-4 pt-0 bg-white">
+                <button type="button" class="btn btn-light fw-semibold" data-bs-dismiss="modal" style="border-radius: 8px;">Cancelar</button>
+                <button type="button" class="btn text-white px-4 fw-semibold" onclick="ejecutarConversion()" id="btnConfirmConversion" style="border-radius: 8px; background-color: #4F46E5;">
+                    <i class="bi bi-check-circle me-1"></i> Finalizar Conversión
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const toast = document.createElement('div');
+            toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#10B981;color:#FFF;padding:12px 20px;border-radius:10px;font-size:0.88rem;font-weight:600;z-index:9999;box-shadow:0 4px 12px rgba(16,185,129,0.3);display:flex;align-items:center;gap:8px;';
+            toast.innerHTML = '<i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        });
+    </script>
+}
+
+@if (TempData["Error"] != null || TempData["ErrorMessage"] != null)
+{
+    var errorMsg = TempData["Error"] ?? TempData["ErrorMessage"];
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const toast = document.createElement('div');
+            toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#EF4444;color:#FFF;padding:12px 20px;border-radius:10px;font-size:0.88rem;font-weight:600;z-index:9999;box-shadow:0 4px 12px rgba(239,68,68,0.3);display:flex;align-items:center;gap:8px;';
+            toast.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> @errorMsg';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 6000);
+        });
+    </script>
+}
+
+<!-- Modal Recepción del Paciente (Triage) -->
+<div class="modal fade" id="modalRecepcion" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.2);">
+            <div class="modal-header border-0 px-4 pt-4 pb-0">
+                <div>
+                    <h4 class="fw-bold mb-1" style="color: #1e293b;"><i class="bi bi-clipboard2-pulse me-2 text-primary"></i>Recepción del Paciente</h4>
+                    <div class="d-flex align-items-center gap-3 text-secondary small">
+                        <span><i class="bi bi-person-fill me-1"></i> <span id="recepcionPacienteNombre">—</span></span>
+                        <span><i class="bi bi-calendar-event me-1"></i> <span id="recepcionFechaHora">—</span></span>
+                        <span class="badge rounded-pill fw-normal" style="background-color: #EEF2FF; color: #4F46E5; font-size: 0.8rem; padding: 5px 12px;">
+                            <i class="bi bi-heart-pulse me-1"></i><span id="recepcionTratamiento">—</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-3 ms-auto align-self-start">
+                    <span class="badge rounded-pill px-3 py-2" style="background: #fef3c7; color: #92400e; font-size: 0.8rem;"
+                        ><span style="width:8px;height:8px;background:#f59e0b;border-radius:50%;display:inline-block;margin-right:6px;animation:pulse 2s infinite;"></span>EN PROCESO</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+            </div>
+            <div class="modal-body px-4 py-3">
+                <form id="formRecepcion">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="recIdCita" name="IdCita" />
+                    <input type="hidden" id="recIdMedico" name="IdMedico" />
+                    <input type="hidden" id="recIdEstado" name="IdEstado" />
+                    <input type="hidden" id="recIdConsulta" name="IdConsulta" />
+
+                    <!-- SECCIÓN 1: SIGNOS VITALES -->
+                    <div class="p-3 mb-3" style="background:#f8fafc; border-radius:14px; border:1px solid #e2e8f0;">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <div class="p-2 bg-danger bg-opacity-10 text-danger rounded-3"><i class="bi bi-activity"></i></div>
+                            <span class="fw-bold text-dark">SIGNOS VITALES</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-4 col-6">
+                                <label class="form-label small fw-bold text-secondary mb-1">Presión Arterial</label>
+                                <input name="signos.PresionArterial" id="recPresion" class="form-control bg-white" placeholder="Ej: 120/80" style="border-radius:10px;border:1px solid #e2e8f0;" />
+                            </div>
+                            <div class="col-md-4 col-6">
+                                <label class="form-label small fw-bold text-secondary mb-1">Temperatura (°C)</label>
+                                <input name="signos.Temperatura" id="recTemp" type="number" step="0.1" class="form-control bg-white" placeholder="°C" style="border-radius:10px;border:1px solid #e2e8f0;" />
+                            </div>
+                            <div class="col-md-4 col-6">
+                                <label class="form-label small fw-bold text-secondary mb-1">Frecuencia Cardíaca (LPM)</label>
+                                <input name="signos.FrecuenciaCardiaca" id="recFC" type="number" class="form-control bg-white" placeholder="LPM" style="border-radius:10px;border:1px solid #e2e8f0;" />
+                            </div>
+                            <div class="col-md-4 col-6">
+                                <label class="form-label small fw-bold text-secondary mb-1">Saturación O₂ (%)</label>
+                                <input name="signos.SaturacionOxigeno" id="recSat" type="number" class="form-control bg-white" placeholder="%" style="border-radius:10px;border:1px solid #e2e8f0;" />
+                            </div>
+                            <div class="col-md-4 col-6">
+                                <label class="form-label small fw-bold text-secondary mb-1">Peso (lbs)</label>
+                                <input name="signos.Peso" id="recPeso" type="number" step="0.01" class="form-control bg-white" placeholder="lbs" style="border-radius:10px;border:1px solid #e2e8f0;" />
+                            </div>
+                            <div class="col-md-4 col-6">
+                                <label class="form-label small fw-bold text-secondary mb-1">Altura (cm)</label>
+                                <input name="signos.Altura" id="recAltura" type="number" step="0.1" class="form-control bg-white" placeholder="cm" style="border-radius:10px;border:1px solid #e2e8f0;" />
+                            </div>
+                        </div>
+                        <!-- IMC Display -->
+                        <div class="mt-3 p-3 d-flex align-items-center gap-4" style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px;">
+                            <div class="text-center" style="min-width:120px;">
+                                <span class="text-secondary small fw-bold text-uppercase d-block">IMC</span>
+                                <span class="fw-bold" id="recImcValue" style="font-size:1.8rem; color:#1d4ed8;">--.-</span>
+                            </div>
+                            <div>
+                                <div id="recImcStatus" class="fw-bold text-secondary">Introduzca peso y altura</div>
+                                <p class="small text-muted mb-0">IMC = peso(kg) / altura(m)² — Peso ingresado en lbs</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN 2: DATOS CLÍNICOS -->
+                    <div class="p-3" style="background:#f8fafc; border-radius:14px; border:1px solid #e2e8f0;">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <div class="p-2 bg-primary bg-opacity-10 text-primary rounded-3"><i class="bi bi-clipboard2-pulse"></i></div>
+                            <span class="fw-bold text-dark">DATOS CLÍNICOS INICIALES</span>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-secondary mb-1">Motivo de consulta</label>
+                            <textarea name="MotivoConsulta" id="recMotivo" class="form-control bg-white" rows="2" placeholder="Tratamiento o servicio agendado" style="border-radius:10px;border:1px solid #e2e8f0;" readonly></textarea>
+                        </div>
+                        <div>
+                            <label class="form-label small fw-bold text-secondary mb-1">Observaciones iniciales</label>
+                            <textarea name="Observaciones" id="recObservaciones" class="form-control bg-white" rows="2" placeholder="Notas adicionales..." style="border-radius:10px;border:1px solid #e2e8f0;"></textarea>
+                        </div>
+                    </div>
+                </form>
+                <div id="recepcionAlert" class="alert alert-danger mt-3 d-none" style="border-radius:10px;"></div>
+            </div>
+            <div class="modal-footer border-0 px-4 pb-4 pt-2">
+                <button type="button" class="btn btn-light fw-semibold px-4" data-bs-dismiss="modal" style="border-radius:10px;">Cancelar</button>
+                <button type="button" class="btn text-white fw-semibold px-5" onclick="guardarRecepcion()" id="btnGuardarRecepcion" style="border-radius:10px; background:#4f46e5; box-shadow: 0 4px 6px rgba(79,70,229,0.3);">
+                    <i class="bi bi-check2-circle me-1"></i> Guardar y continuar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@@6.1.14/index.global.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/citas-calendar.css" asp-append-version="true" />
+    <style>
+        .event-canceled {
+            opacity: 0.65;
+            background-color: #E1E4E8 !important;
+            border-color: #D1D5DB !important;
+        }
+        .event-canceled .custom-event-title,
+        .event-canceled .custom-event-treatment {
+            text-decoration: line-through;
+            color: #6B7280 !important;
+        }
+        .event-canceled .custom-event-time {
+            color: #9CA3AF !important;
+        }
+        /* Mobile Refinements for FullCalendar */
+    @@media (max-width: 575.98px) {
+        #calendar {
+            font-size: 0.75rem; /* Smaller font for small screens */
+        }
+        .fc-event-title {
+            font-size: 0.7rem;
+            white-space: normal !important;
+        }
+        .card-header {
+            padding: 20px 15px !important;
+        }
+        #calendarTitle {
+            font-size: 1.1rem;
+        }
+    }
+</style>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@@6.1.14/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@@fullcalendar/core@@6.1.14/locales/es.global.min.js"></script>
+    <script src="~/js/citas-calendar.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,316 @@
+/* ============================================================
+   MediTech – Citas Calendar Styles (Rediseño UI)
+   ============================================================ */
+
+/* ── FullCalendar Overrides ── */
+.fc {
+    font-family: 'Inter', sans-serif !important;
+}
+
+.fc .fc-toolbar {
+    display: none !important; /* Usamos cabecera custom en HTML */
+}
+
+/* Cabeceras de días (LUN, MAR) */
+.fc .fc-col-header-cell {
+    padding: 12px 0;
+    border-color: #E5E7EB !important;
+    border-top: none !important;
+    background: transparent;
+}
+
+.fc .fc-col-header-cell-cushion {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #6B7280;
+    text-transform: uppercase;
+    text-decoration: none !important;
+    letter-spacing: 0.5px;
+}
+
+/* Número de día normal */
+.fc .fc-daygrid-day-number {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #111827;
+    text-decoration: none !important;
+    padding: 8px 12px;
+}
+
+/* Día "Hoy" (Resaltado Animado) */
+.fc .fc-day-today {
+    background: rgba(79, 70, 229, 0.03) !important;
+}
+
+/* Nombre del día en la cabecera (LUN, MAR, etc.) */
+.fc .fc-col-header-cell.fc-day-today .fc-col-header-cell-cushion {
+    color: #4F46E5 !important;
+    font-weight: 800 !important;
+}
+
+/* Círculo para el número del día en vista de Mes */
+.fc .fc-day-today .fc-daygrid-day-number {
+    background-color: #4F46E5 !important;
+    color: #FFF !important;
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 4px auto;
+    font-weight: 800;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+    transition: all 0.3s ease;
+    animation: today-pulse 2.5s infinite;
+}
+
+/* Animación de Pulso Suave */
+@keyframes today-pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+    }
+    50% {
+        transform: scale(1.08);
+        box-shadow: 0 6px 18px rgba(79, 70, 229, 0.5);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+    }
+}
+
+/* Grillas */
+.fc td, .fc th {
+    border-color: #E5E7EB !important;
+}
+
+.fc-scrollgrid {
+    border: none !important;
+}
+
+.fc .fc-timegrid-slot {
+    height: 48px;
+}
+
+.fc .fc-timegrid-slot-label-cushion {
+    font-size: 0.75rem;
+    color: #6B7280;
+    font-weight: 500;
+}
+
+/* Indicador de hora actual */
+.fc .fc-timegrid-now-indicator-line {
+    border-color: #EF4444;
+    border-width: 2px;
+}
+.fc .fc-timegrid-now-indicator-arrow {
+    border-color: #EF4444;
+}
+
+/* ==========================================
+   Eventos (Citas)
+   ========================================== */
+.fc .fc-event {
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 2px 6px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    box-shadow: none;
+    transition: transform 0.15s, filter 0.15s;
+    overflow: hidden;
+}
+
+.fc .fc-event:hover {
+    filter: brightness(0.95);
+    transform: translateY(-1px);
+}
+
+.fc .fc-timegrid-event .fc-event-main {
+    padding: 4px 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* Estructura Interna del Evento Inyectada vía JS */
+.custom-event-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.custom-event-time {
+    font-size: 0.7rem;
+    font-weight: 600;
+    opacity: 0.9;
+    margin-bottom: 2px;
+}
+
+.custom-event-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.custom-event-treatment {
+    font-size: 0.65rem;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-block;
+    align-self: flex-start;
+    text-transform: uppercase;
+}
+
+/* ==========================================
+   Controles Superiores (Cabecera Calendario)
+   ========================================== */
+.custom-cal-nav {
+    border-radius: 6px !important;
+    transition: background 0.2s;
+}
+.custom-cal-nav:hover {
+    background-color: #F3F4F6 !important;
+}
+
+/* View Switcher (Mes/Semana/Día) */
+.btn-view {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 6px 16px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.btn-view.active {
+    background-color: #4F46E5 !important;
+    color: #FFF !important;
+    border-color: #4F46E5 !important;
+}
+
+/* ==========================================
+   Offcanvas (Agenda de Hoy)
+   ========================================== */
+.custom-offcanvas {
+    width: 380px !important;
+    border-left: none;
+    box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+}
+
+/* Tarjetas de citas en Offcanvas */
+.today-card {
+    background: #FFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: transform 0.15s, box-shadow 0.15s;
+    cursor: pointer;
+}
+
+.today-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.today-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    background-color: #4F46E5;
+}
+
+.today-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.today-card-time {
+    color: #4F46E5;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.today-card-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.today-card-phone {
+    font-size: 0.8rem;
+    color: #6B7280;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.today-card-treatment {
+    font-size: 0.75rem;
+    color: #4F46E5;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
+}
+
+.today-card-status {
+    font-size: 1.5rem;
+}
+
+.status-check {
+    color: #10B981;
+}
+
+.status-pending {
+    color: #D1D5DB;
+}
+
+/* ==========================================
+   Modales Formularios
+   ========================================== */
+.icon-box {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: #F3F4F6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #4F46E5;
+    box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.25);
+}
+
+/* Prospect Badge Modal */
+.badge-prospect {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+}
