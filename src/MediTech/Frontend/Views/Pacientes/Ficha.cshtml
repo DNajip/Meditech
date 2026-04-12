@@ -18,6 +18,26 @@
         align-items: start;
     }
 
+    /* Responsive adjustments for iPad and Mobile (QA Expert Audit) */
+    @@media (max-width: 1200px) {
+        .ficha-container {
+            grid-template-columns: 1fr;
+        }
+        .sidebar-card {
+            position: relative !important;
+            top: 0 !important;
+            margin-bottom: 24px;
+        }
+        .active-consultation-banner {
+            flex-direction: column;
+            gap: 15px;
+            text-align: center;
+        }
+        .active-consultation-banner .d-flex {
+            justify-content: center;
+        }
+    }
+
     .sidebar-card {
         background: #FFFFFF;
         border-radius: 16px;
@@ -25,6 +45,7 @@
         padding: 24px;
         position: sticky;
         top: 88px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
     }
 
     .profile-section {

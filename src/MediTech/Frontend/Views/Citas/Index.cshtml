@@ -47,12 +47,10 @@
         </div>
     </div>
 
-    <!-- Floating Action Button: Agenda de Hoy -->
-    <button class="btn shadow-lg position-fixed d-flex align-items-center"
-        style="bottom: 60px; right: 40px; border-radius: 50px; z-index: 1040; padding: 12px 24px; font-weight: 600; background-color: #4F46E5; color: white; border: none; transition: transform 0.2s;"
-        data-bs-toggle="offcanvas" data-bs-target="#agendaHoy" onmouseover="this.style.transform='scale(1.05)'"
-        onmouseout="this.style.transform='scale(1)'">
-        <i class="fas fa-calendar-day me-2 fs-5"></i> Ver agenda de hoy
+    <!-- Floating Action Button: Agenda de Hoy (QA Expert Optimized) -->
+    <button class="btn shadow-lg position-fixed d-flex align-items-center floating-agenda-btn"
+        data-bs-toggle="offcanvas" data-bs-target="#agendaHoy">
+        <i class="fas fa-calendar-day me-2 fs-5"></i> <span>Ver agenda de hoy</span>
     </button>
 </div>
 
@@ -453,6 +451,23 @@
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@@6.1.14/index.global.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/citas-calendar.css" asp-append-version="true" />
     <style>
+        .floating-agenda-btn {
+            bottom: 60px; 
+            right: 40px; 
+            border-radius: 50px; 
+            z-index: 1040; 
+            padding: 12px 24px; 
+            font-weight: 600; 
+            background-color: #4F46E5; 
+            color: white; 
+            border: none; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .floating-agenda-btn:hover {
+            transform: scale(1.05);
+            background-color: #4338CA;
+            color: white;
+        }
         .event-canceled {
             opacity: 0.65;
             background-color: #E1E4E8 !important;
@@ -467,22 +482,47 @@
             color: #9CA3AF !important;
         }
         /* Mobile Refinements for FullCalendar */
-    @@media (max-width: 575.98px) {
-        #calendar {
-            font-size: 0.75rem; /* Smaller font for small screens */
+        @@media (max-width: 1200px) {
+            #fullcalendar {
+                min-height: 500px !important;
+            }
+            .floating-agenda-btn {
+                bottom: 20px !important;
+                right: 20px !important;
+                padding: 10px 18px !important;
+                font-size: 0.85rem !important;
+            }
         }
-        .fc-event-title {
-            font-size: 0.7rem;
-            white-space: normal !important;
+
+        @@media (max-width: 575.98px) {
+            #calendar {
+                font-size: 0.75rem; /* Smaller font for small screens */
+            }
+            .fc-event-title {
+                font-size: 0.7rem;
+                white-space: normal !important;
+            }
+            .card-header {
+                padding: 20px 15px !important;
+            }
+            #calendarTitle {
+                font-size: 1.1rem;
+            }
+            .floating-agenda-btn span {
+                display: none; /* Hide text on mobile, keep icon */
+            }
+            .floating-agenda-btn {
+                width: 50px;
+                height: 50px;
+                padding: 0 !important;
+                justify-content: center;
+                border-radius: 50% !important;
+            }
+            .floating-agenda-btn i {
+                margin: 0 !important;
+            }
         }
-        .card-header {
-            padding: 20px 15px !important;
-        }
-        #calendarTitle {
-            font-size: 1.1rem;
-        }
-    }
-</style>
+    </style>
 }
 
 @section Scripts {

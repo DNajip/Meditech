@@ -23,71 +23,60 @@ namespace MediTech.Backend.Models
                 .ThenInclude(e => e != null ? e.Persona : null)
                 .FirstOrDefault(u => u.Username == "admin");
 
-            if (existingAdmin != null)
+            if (existingAdmin == null)
             {
-                Console.WriteLine($"Deleting existing admin user and related records. ID: {existingAdmin.IdUsuario}");
-                
-                // Clear module permissions to avoid FK conflict
-                context.Database.ExecuteSqlRaw("DELETE FROM ADM.USUARIO_MODULOS WHERE ID_USUARIO = {0}", existingAdmin.IdUsuario);
-
-                var empleado = existingAdmin.Empleado;
-                var persona = empleado?.Persona;
-
-                context.Usuarios.Remove(existingAdmin);
-                if (empleado != null) context.Empleados.Remove(empleado);
-                if (persona != null) context.Personas.Remove(persona);
-                
+                Console.WriteLine("Creating fresh Admin records...");
+                // 1. Create Persona
+                var adminPersona = new Persona
+                {
+                    PrimerNombre = "Admin",
+                    PrimerApellido = "User",
+                    IdTipoIdentificacion = 1, // CEDULA
+                    NumIdentificacion = "000-000000-0000",
+                    IdGenero = 1, // MASCULINO
+                    FechaNacimiento = new DateTime(1990, 1, 1),
+                    Email = "admin@meditech.com",
+                    Telefono = "0000-0000",
+                    Direccion = "Sede Central",
+                    IdEstado = 1 // ACTIVO
+                };
+                context.Personas.Add(adminPersona);
                 context.SaveChanges();
+                Console.WriteLine($"Persona Created. ID: {adminPersona.IdPersona}");
+
+                // 2. Create Empleado (ADM.EMPLEADOS)
+                var adminEmpleado = new Empleado
+                {
+                    IdPersona = adminPersona.IdPersona,
+                    IdRol = 1, // ADMINISTRADOR
+                    FechaContratacion = DateTime.Now,
+                    IdEstado = 1 // ACTIVO
+                };
+                context.Empleados.Add(adminEmpleado);
+                context.SaveChanges();
+                Console.WriteLine($"Empleado Created. ID: {adminEmpleado.IdEmpleado}");
+
+                // 3. Create Usuario (ADM.USUARIOS)
+                CreatePasswordHash("admin123", out byte[] passwordHash, out byte[] passwordSalt);
+
+                var adminUsuario = new Usuario
+                {
+                    Username = "admin",
+                    PasswordHash = passwordHash,
+                    PasswordSalt = passwordSalt,
+                    IdEmpleado = adminEmpleado.IdEmpleado,
+                    IdRol = 1, // ADMINISTRADOR
+                    IdEstado = 1 // ACTIVO
+                };
+                context.Usuarios.Add(adminUsuario);
+                context.SaveChanges();
+                Console.WriteLine("Admin User Seeded Successfully.");
+            }
+            else
+            {
+                Console.WriteLine("Admin user already exists. Skipping recreation.");
             }
 
-            Console.WriteLine("Creating fresh Admin records...");
-            // ... (ommited for brevity as I'm using replace_file_content for a block)
-            // Wait, I should replace exactly what I want to fix.
-            // 1. Create Persona
-            var adminPersona = new Persona
-            {
-                PrimerNombre = "Admin",
-                PrimerApellido = "User",
-                IdTipoIdentificacion = 1, // CEDULA
-                NumIdentificacion = "000-000000-0000",
-                IdGenero = 1, // MASCULINO
-                FechaNacimiento = new DateTime(1990, 1, 1),
-                Email = "admin@meditech.com",
-                Telefono = "0000-0000",
-                Direccion = "Sede Central",
-                IdEstado = 1 // ACTIVO
-            };
-            context.Personas.Add(adminPersona);
-            context.SaveChanges();
-            Console.WriteLine($"Persona Created. ID: {adminPersona.IdPersona}");
-
-            // 2. Create Empleado (ADM.EMPLEADOS)
-            var adminEmpleado = new Empleado
-            {
-                IdPersona = adminPersona.IdPersona,
-                IdRol = 1, // ADMINISTRADOR
-                FechaContratacion = DateTime.Now,
-                IdEstado = 1 // ACTIVO
-            };
-            context.Empleados.Add(adminEmpleado);
-            context.SaveChanges();
-            Console.WriteLine($"Empleado Created. ID: {adminEmpleado.IdEmpleado}");
-
-            // 3. Create Usuario (ADM.USUARIOS)
-            CreatePasswordHash("admin123", out byte[] passwordHash, out byte[] passwordSalt);
-
-            var adminUsuario = new Usuario
-            {
-                Username = "admin",
-                PasswordHash = passwordHash,
-                PasswordSalt = passwordSalt,
-                IdEmpleado = adminEmpleado.IdEmpleado,
-                IdRol = 1, // ADMINISTRADOR
-                IdEstado = 1 // ACTIVO
-            };
-            context.Usuarios.Add(adminUsuario);
-            context.SaveChanges();
-            Console.WriteLine("Admin User Seeded Successfully.");
 
             // SEED DOCTOR
             if (!context.Usuarios.Any(u => u.Username == "doctor"))
@@ -744,6 +733,10 @@ namespace MediTech.Backend.Models
 
                 -- Ensure modules have IdEstado = 1
                 UPDATE ADM.MODULOS SET ID_ESTADO = 1 WHERE ID_ESTADO IS NULL;
+
+                -- Remove 'Exámenes' as a standalone module (it belongs to Ficha Medica/Consultas)
+                DELETE FROM ADM.USUARIO_MODULOS WHERE ID_MODULO IN (SELECT ID_MODULO FROM ADM.MODULOS WHERE NOMBRE = 'Exámenes');
+                DELETE FROM ADM.MODULOS WHERE NOMBRE = 'Exámenes';
             ");
 
             // Seed Modules if empty

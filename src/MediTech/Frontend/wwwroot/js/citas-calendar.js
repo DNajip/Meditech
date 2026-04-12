@@ -115,6 +115,37 @@ document.addEventListener('DOMContentLoaded', function () {
         updateActiveButton(this);
     });
 
+    // 4.1 Responsive View Management (Audit Requirement)
+    function adjustCalendarView() {
+        const width = window.innerWidth;
+        if (width < 576) {
+            if (calendar.view.type !== 'timeGridDay') {
+                calendar.changeView('timeGridDay');
+                updateActiveButton(btnViewDay);
+            }
+        } else if (width < 1200) {
+            if (calendar.view.type !== 'timeGridWeek') {
+                calendar.changeView('timeGridWeek');
+                updateActiveButton(btnViewWeek);
+            }
+        } else {
+            if (calendar.view.type !== 'dayGridMonth' && width > 1400) {
+                // Keep month view only on very large screens if preferred, 
+                // but usually week view is better for clinics.
+            }
+        }
+    }
+
+    // Initial adjustment
+    adjustCalendarView();
+
+    // Debounced Resize Listener
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(adjustCalendarView, 250);
+    });
+
     function updateActiveButton(activeBtn) {
         viewButtons.forEach(btn => {
             if(!btn) return;
