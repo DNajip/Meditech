@@ -12,9 +12,9 @@
         <p class="text-muted d-none d-sm-block mb-0">Control de cuentas, cobros e ingresos de la clínica</p>
     </div>
     <div class="d-flex gap-2">
-        <a asp-action="Create" class="btn btn-primary-premium shadow-sm px-4 py-2" style="width: auto !important;">
+        <button type="button" class="btn btn-primary-premium shadow-sm px-4 py-2" data-bs-toggle="modal" data-bs-target="#createCuentaModal" style="width: auto !important;">
             <i class="fas fa-plus-circle me-1"></i> Nueva Cuenta
-        </a>
+        </button>
     </div>
 </div>
 
@@ -290,52 +290,448 @@
     </div>
 </div>
 
-@section Scripts {
-<script>
-    document.querySelectorAll('.btn-anular').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const id = this.dataset.id;
-            MediConfirm.show({
-                title: '¿Anular Cuenta #' + id + '?',
-                message: 'Esta acción anulará todos los cargos y devolverá el stock de productos al inventario. No se puede revertir.',
-                variant: 'danger',
-                confirmText: 'Sí, Anular',
-                cancelText: 'Cancelar',
-                icon: 'fa-ban'
-            }).then(confirmed => {
-                if (confirmed) {
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = '/Caja/AnularCuenta/' + id;
-                    
-                    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-                    if (token) {
-                        const inputToken = document.createElement('input');
-                        inputToken.type = 'hidden';
-                        inputToken.name = '__RequestVerificationToken';
-                        inputToken.value = token;
-                        form.appendChild(inputToken);
-                    }
-                    
-                    fetch(form.action, {
-                        method: 'POST',
-                        body: new FormData(form)
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            MediToast.success(data.message);
-                            setTimeout(() => location.reload(), 1500);
-                        } else {
-                            MediToast.error(data.message);
-                        }
-                    });
-                }
-            });
-        });
-    });
-</script>
-}
 
 @Html.AntiForgeryToken()
 
+
+@section Modals {
+    <!-- Modal: Nueva Cuenta (Premium) -->
+    <div class="modal fade" id="createCuentaModal" tabindex="-1" aria-labelledby="createCuentaModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
+                <div class="modal-header bg-transparent border-0 pt-4 px-4 d-flex align-items-center">
+                    <div class="icon-shape bg-soft-primary rounded-circle me-3 p-3">
+                        <i class="fas fa-file-invoice-dollar text-primary fs-4"></i>
+                    </div>
+                    <div>
+                        <h4 class="modal-title fw-bold text-dark mb-0" id="createCuentaModalLabel">Generar Nueva Cuenta de Cobro</h4>
+                        <p class="text-muted small mb-0">Gestione los servicios y productos para el paciente</p>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 pt-2">
+                    <form asp-action="Create" method="post" id="formCuenta">
+                        <div class="row g-4">
+                            <!-- Left Panel: Datos -->
+                            <div class="col-lg-4">
+                                <div class="bg-light rounded-4 p-4 h-100">
+                                    <div class="mb-4 position-relative">
+                                        <label class="form-label fw-bold small text-uppercase text-muted silver-label mb-2">Paciente <span class="text-danger">*</span></label>
+                                        <div class="input-group shadow-sm bg-white rounded-3 overflow-hidden">
+                                            <span class="input-group-text bg-transparent border-0"><i class="fas fa-search text-primary"></i></span>
+                                            <input type="text" id="pacienteSearch" class="form-control border-0 py-2" placeholder="Buscar por Nombre..." autocomplete="off">
+                                            <button class="btn border-0 text-muted" type="button" id="btnClearPaciente" style="display:none;"><i class="fas fa-times"></i></button>
+                                        </div>
+                                        <input type="hidden" name="idPaciente" id="idPaciente" required>
+                                        <div id="pacienteResults" class="autocomplete-results shadow-lg border rounded-3 mt-1 py-1 position-absolute w-100 bg-white" style="display:none; z-index: 3000;"></div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small text-uppercase text-muted silver-label mb-2">Moneda Principal</label>
+                                        <div class="form-control bg-white border-0 fw-bold text-primary shadow-sm py-2">
+                                            @ViewBag.MonedaBase?.Nombre (@ViewBag.MonedaBase?.Codigo)
+                                        </div>
+                                        <input type="hidden" name="idMonedaBase" value="@ViewBag.MonedaBase?.IdMoneda" />
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label class="form-label fw-bold small text-uppercase text-muted silver-label mb-2">Descuento Global</label>
+                                        <div class="input-group shadow-sm bg-white rounded-3 overflow-hidden">
+                                            <span class="input-group-text bg-transparent border-0">@ViewBag.MonedaBase?.Simbolo</span>
+                                            <input type="number" name="descuento" class="form-control border-0 py-2" value="0" step="0.01" min="0" id="inputDescuento">
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-white rounded-3 p-3 shadow-sm">
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span class="text-muted small fw-bold">Subtotal:</span>
+                                            <span class="fw-bold" id="lblSubtotal">@ViewBag.MonedaBase?.Simbolo 0.00</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span class="text-muted small fw-bold">Descuento:</span>
+                                            <span class="fw-bold text-danger" id="lblDescuento">- @ViewBag.MonedaBase?.Simbolo 0.00</span>
+                                        </div>
+                                        <hr class="my-2 border-dashed">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="fw-bold fs-5 text-dark">Total:</span>
+                                            <span class="fw-bold fs-4 text-primary" id="lblTotal">@ViewBag.MonedaBase?.Simbolo 0.00</span>
+                                        </div>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary-premium w-100 mt-4 shadow-sm py-3" id="btnGuardar" disabled>
+                                        <i class="fas fa-save me-2"></i>Finalizar Cuenta
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Right Panel: Items -->
+                            <div class="col-lg-8">
+                                <div class="card border-0 shadow-none h-100">
+                                    <div class="card-header bg-transparent border-0 pb-3 d-flex justify-content-between align-items-center px-0">
+                                        <h6 class="fw-bold mb-0 text-muted small text-uppercase ls-1">Servicios & Artículos</h6>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-sm btn-soft-success rounded-pill px-3" id="btnAddTratamiento">
+                                                <i class="fas fa-plus me-1"></i>Tratamiento
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-soft-info rounded-pill px-3" id="btnAddProducto">
+                                                <i class="fas fa-plus me-1"></i>Producto
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="card-body px-0 pt-0">
+                                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                                            <table class="table align-middle mb-0" id="tablaItems">
+                                                <thead class="bg-light sticky-top">
+                                                    <tr>
+                                                        <th class="small py-3 border-0">Tipo</th>
+                                                        <th class="small py-3 border-0">Concepto</th>
+                                                        <th class="small py-3 border-0 text-center" width="90">Cant.</th>
+                                                        <th class="small py-3 border-0" width="130">Precio U.</th>
+                                                        <th class="small py-3 border-0" width="130">Subtotal</th>
+                                                        <th class="small py-3 border-0" width="50"></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="tbodyItems">
+                                                    <tr id="emptyRow">
+                                                        <td colspan="6" class="text-center py-5 text-muted">
+                                                            <i class="fas fa-cart-plus fa-3x mb-3 d-block opacity-25"></i>
+                                                            Agregue conceptos a cobrar para continuar
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sub-Modal: Agregar Tratamiento -->
+    <div class="modal fade" id="modalTratamiento" tabindex="-1" style="z-index: 1061;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="fw-bold"><i class="fas fa-hand-holding-medical text-success me-2"></i>Añadir Tratamiento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3 position-relative">
+                        <label class="form-label small fw-bold text-muted">Seleccione el servicio</label>
+                        <div class="input-group bg-light rounded-3 overflow-hidden shadow-none border">
+                            <span class="input-group-text bg-transparent border-0"><i class="fas fa-search text-muted"></i></span>
+                            <input type="text" id="tratamientoSearch" class="form-control border-0 bg-transparent" placeholder="Escriba para buscar tratamiento...">
+                            <button class="btn border-0 text-muted" type="button" id="btnClearTratSearch" style="display:none;"><i class="fas fa-times"></i></button>
+                        </div>
+                        <input type="hidden" id="selTratId">
+                        <input type="hidden" id="selTratNombre">
+                        <input type="hidden" id="selTratPrecio">
+                        <div id="tratamientoResults" class="autocomplete-results shadow-lg border rounded-3 mt-1 py-1 position-absolute w-100 bg-white" style="display:none; z-index: 3000;"></div>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label small fw-bold text-muted">Cantidad</label>
+                        <div class="input-group bg-light rounded-3 overflow-hidden">
+                            <span class="input-group-text bg-transparent border-0"><i class="fas fa-hashtag text-muted"></i></span>
+                            <input type="number" class="form-control border-0 bg-transparent" id="cantTratamiento" value="1" min="1">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-primary-premium w-100 py-2" id="btnConfirmTratamiento">Agregar a la Cuenta</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sub-Modal: Agregar Producto -->
+    <div class="modal fade" id="modalProducto" tabindex="-1" style="z-index: 1061;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="fw-bold"><i class="fas fa-box text-info me-2"></i>Añadir Producto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3 position-relative">
+                        <label class="form-label small fw-bold text-muted">Seleccione el artículo</label>
+                        <div class="input-group bg-light rounded-3 overflow-hidden shadow-none border">
+                            <span class="input-group-text bg-transparent border-0"><i class="fas fa-search text-muted"></i></span>
+                            <input type="text" id="productoSearch" class="form-control border-0 bg-transparent" placeholder="Escriba para buscar producto...">
+                            <button class="btn border-0 text-muted" type="button" id="btnClearProdSearch" style="display:none;"><i class="fas fa-times"></i></button>
+                        </div>
+                        <input type="hidden" id="selProdId">
+                        <input type="hidden" id="selProdNombre">
+                        <input type="hidden" id="selProdPrecio">
+                        <input type="hidden" id="selProdStock">
+                        <div id="productoResults" class="autocomplete-results shadow-lg border rounded-3 mt-1 py-1 position-absolute w-100 bg-white" style="display:none; z-index: 3000;"></div>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label small fw-bold text-muted">Cantidad a facturar</label>
+                        <div class="input-group bg-light rounded-3 overflow-hidden">
+                            <span class="input-group-text bg-transparent border-0"><i class="fas fa-sort-numeric-up text-muted"></i></span>
+                            <input type="number" class="form-control border-0 bg-transparent" id="cantProducto" value="1" min="1">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-primary-premium w-100 py-2" id="btnConfirmProducto">Agregar a la Cuenta</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <style>
+        .btn-soft-success { background: #ECFDF5; color: #10B981; border: 1px solid #D1FAE5; }
+        .btn-soft-info { background: #EFF6FF; color: #3B82F6; border: 1px solid #DBEAFE; }
+        .bg-soft-primary { background: #DBEAFE; color: #3B82F6; }
+        .autocomplete-results { position: absolute; top: 100%; left: 0; right: 0; background: white; max-height: 250px; overflow-y: auto; z-index: 2000; border-radius: 12px; }
+        .autocomplete-item { padding: 12px; cursor: pointer; transition: all 0.2s; border-bottom: 1px solid #f1f5f9; }
+        .autocomplete-item:hover { background: #f8fafc; color: #3B82F6; }
+        .border-dashed { border-style: dashed !important; }
+        .modal-xl { max-width: 1100px; }
+    </style>
+    <script>
+        $(document).ready(function () {
+            // Lógica de anulación (Consolidada)
+            document.querySelectorAll('.btn-anular').forEach(btn => {
+                btn.onclick = function() {
+                    const id = this.dataset.id;
+                    MediConfirm.show({
+                        title: '¿Anular Cuenta #' + id + '?',
+                        message: 'Esta acción anulará todos los cargos y devolverá el stock de productos al inventario. No se puede revertir.',
+                        variant: 'danger',
+                        confirmText: 'Sí, Anular',
+                        cancelText: 'Cancelar',
+                        icon: 'fa-ban'
+                    }).then(confirmed => {
+                        if (confirmed) {
+                            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                            $.ajax({
+                                url: '/Caja/AnularCuenta/' + id,
+                                type: 'POST',
+                                data: { __RequestVerificationToken: token },
+                                success: function(data) {
+                                    if (data.success) { MediToast.success(data.message); setTimeout(() => location.reload(), 1500); }
+                                    else { MediToast.error(data.message); }
+                                }
+                            });
+                        }
+                    });
+                };
+            });
+
+            // Dashboard Auto-open
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('autoOpen') === '1') {
+                const mainModal = new bootstrap.Modal(document.getElementById('createCuentaModal'));
+                mainModal.show();
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            // Sub-modal triggers
+            $('#btnAddTratamiento').on('click', () => { new bootstrap.Modal(document.getElementById('modalTratamiento')).show(); });
+            $('#btnAddProducto').on('click', () => { new bootstrap.Modal(document.getElementById('modalProducto')).show(); });
+
+            // Paciente Search (Dinamismo AJAX)
+            const inputSearch = document.getElementById('pacienteSearch');
+            const inputId = document.getElementById('idPaciente');
+            const resultsDiv = document.getElementById('pacienteResults');
+            const btnClear = document.getElementById('btnClearPaciente');
+            let debounceTimer;
+
+            inputSearch.addEventListener('input', function() {
+                const term = this.value.trim();
+                clearTimeout(debounceTimer);
+                if (term.length < 2) { resultsDiv.style.display = 'none'; btnClear.style.display = 'none'; inputId.value = ''; return; }
+                btnClear.style.display = 'block';
+                resultsDiv.innerHTML = '<div class="p-3 text-center text-muted small"><span class="spinner-border spinner-border-sm me-2"></span>Buscando...</div>';
+                resultsDiv.style.display = 'block';
+
+                debounceTimer = setTimeout(() => {
+                    fetch(`/Caja/GetPacientesSearch?term=${encodeURIComponent(term)}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            resultsDiv.innerHTML = '';
+                            if (data.length === 0) { resultsDiv.innerHTML = '<div class="p-3 text-center text-muted small">No se encontraron pacientes</div>'; }
+                            else {
+                                data.forEach(p => {
+                                    const item = document.createElement('div');
+                                    item.className = 'autocomplete-item';
+                                    item.innerHTML = `<strong>${p.nombre}</strong><br><small class="text-muted">${p.detalle}</small>`;
+                                    item.onclick = () => { inputSearch.value = p.nombre; inputId.value = p.id; resultsDiv.style.display = 'none'; };
+                                    resultsDiv.appendChild(item);
+                                });
+                            }
+                        });
+                }, 300);
+            });
+            btnClear.onclick = () => { inputSearch.value = ''; inputId.value = ''; resultsDiv.style.display = 'none'; btnClear.style.display = 'none'; };
+
+            // Tratamiento Search (Dinamismo AJAX)
+            const inputTrat = document.getElementById('tratamientoSearch');
+            const resTrat = document.getElementById('tratamientoResults');
+            const btnClearTrat = document.getElementById('btnClearTratSearch');
+            let tratTimer;
+
+            inputTrat.addEventListener('input', function() {
+                const term = this.value.trim();
+                clearTimeout(tratTimer);
+                if (term.length < 2) { resTrat.style.display = 'none'; btnClearTrat.style.display = 'none'; return; }
+                btnClearTrat.style.display = 'block';
+                resTrat.innerHTML = '<div class="p-3 text-center text-muted small"><span class="spinner-border spinner-border-sm me-2"></span>Buscando...</div>';
+                resTrat.style.display = 'block';
+
+                tratTimer = setTimeout(() => {
+                    fetch(`/Caja/GetTratamientosSearch?term=${encodeURIComponent(term)}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            resTrat.innerHTML = '';
+                            if (data.length === 0) { resTrat.innerHTML = '<div class="p-3 text-center text-muted small">No se encontraron tratamientos</div>'; }
+                            else {
+                                data.forEach(t => {
+                                    const item = document.createElement('div');
+                                    item.className = 'autocomplete-item';
+                                    item.innerHTML = `<strong>${t.nombre}</strong><br><small class="text-muted">Precio: @ViewBag.MonedaBase?.Simbolo ${t.precio.toFixed(2)}</small>`;
+                                    item.onclick = () => { 
+                                        inputTrat.value = t.nombre; 
+                                        $('#selTratId').val(t.id); $('#selTratNombre').val(t.nombre); $('#selTratPrecio').val(t.precio);
+                                        resTrat.style.display = 'none'; 
+                                    };
+                                    resTrat.appendChild(item);
+                                });
+                            }
+                        });
+                }, 300);
+            });
+            btnClearTrat.onclick = () => { inputTrat.value = ''; $('#selTratId').val(''); resTrat.style.display = 'none'; btnClearTrat.style.display = 'none'; };
+
+            // Producto Search (Dinamismo AJAX)
+            const inputProd = document.getElementById('productoSearch');
+            const resProd = document.getElementById('productoResults');
+            const btnClearProd = document.getElementById('btnClearProdSearch');
+            let prodTimer;
+
+            inputProd.addEventListener('input', function() {
+                const term = this.value.trim();
+                clearTimeout(prodTimer);
+                if (term.length < 2) { resProd.style.display = 'none'; btnClearProd.style.display = 'none'; return; }
+                btnClearProd.style.display = 'block';
+                resProd.innerHTML = '<div class="p-3 text-center text-muted small"><span class="spinner-border spinner-border-sm me-2"></span>Buscando...</div>';
+                resProd.style.display = 'block';
+
+                prodTimer = setTimeout(() => {
+                    fetch(`/Caja/GetProductosSearch?term=${encodeURIComponent(term)}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            resProd.innerHTML = '';
+                            if (data.length === 0) { resProd.innerHTML = '<div class="p-3 text-center text-muted small">No se encontraron productos</div>'; }
+                            else {
+                                data.forEach(p => {
+                                    const item = document.createElement('div');
+                                    item.className = 'autocomplete-item';
+                                    item.innerHTML = `<strong>${p.nombre}</strong><br><small class="text-muted">Stock: ${p.stock} | Precio: @ViewBag.MonedaBase?.Simbolo ${p.precio.toFixed(2)}</small>`;
+                                    item.onclick = () => { 
+                                        inputProd.value = p.nombre; 
+                                        $('#selProdId').val(p.id); $('#selProdNombre').val(p.nombre); $('#selProdPrecio').val(p.precio); $('#selProdStock').val(p.stock);
+                                        resProd.style.display = 'none'; 
+                                    };
+                                    resProd.appendChild(item);
+                                });
+                            }
+                        });
+                }, 300);
+            });
+            btnClearProd.onclick = () => { inputProd.value = ''; $('#selProdId').val(''); resProd.style.display = 'none'; btnClearProd.style.display = 'none'; };
+
+            // Ítems Logic (Actualizada para búsqueda dinámica)
+            $('#btnConfirmTratamiento').on('click', () => {
+                const id = $('#selTratId').val();
+                const nombre = $('#selTratNombre').val();
+                const precio = parseFloat($('#selTratPrecio').val());
+                if (!id) { alert('Seleccione un tratamiento válido'); return; }
+                addItem('TRATAMIENTO', id, nombre, parseInt($('#cantTratamiento').val()) || 1, precio || 0);
+                bootstrap.Modal.getInstance(document.getElementById('modalTratamiento')).hide();
+                // Reset
+                inputTrat.value = ''; $('#selTratId').val(''); btnClearTrat.style.display = 'none'; $('#cantTratamiento').val(1);
+            });
+
+            $('#btnConfirmProducto').on('click', () => {
+                const id = $('#selProdId').val();
+                const nombre = $('#selProdNombre').val();
+                const precio = parseFloat($('#selProdPrecio').val());
+                const stock = parseInt($('#selProdStock').val());
+                const cant = parseInt($('#cantProducto').val()) || 1;
+
+                if (!id) { alert('Seleccione un producto válido'); return; }
+                if (cant > stock) { alert('Stock insuficiente. Disponibles: ' + stock); return; }
+
+                addItem('PRODUCTO', id, nombre, cant, precio || 0);
+                bootstrap.Modal.getInstance(document.getElementById('modalProducto')).hide();
+                // Reset
+                inputProd.value = ''; $('#selProdId').val(''); btnClearProd.style.display = 'none'; $('#cantProducto').val(1);
+            });
+
+            function addItem(tipo, idRef, desc, cant, precio) {
+                const empty = document.getElementById('emptyRow'); if (empty) empty.remove();
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="badge ${tipo === 'TRATAMIENTO' ? 'bg-soft-success text-success' : 'bg-soft-info text-info'} rounded-pill">${tipo}</span>
+                        <input type="hidden" name="tipoItem" value="${tipo}"><input type="hidden" name="idReferencia" value="${idRef}"><input type="hidden" name="descripcionItem" value="${desc}"></td>
+                    <td class="fw-semibold small">${desc}</td>
+                    <td><input type="number" name="cantidad" class="form-control form-control-sm text-center" value="${cant}" min="1" onchange="updateRow(this)"></td>
+                    <td><input type="number" name="precioUnitario" class="form-control form-control-sm" value="${precio.toFixed(2)}" step="0.01" onchange="updateRow(this)"></td>
+                    <td class="fw-bold subtotal-cell">${(cant * precio).toFixed(2)}</td>
+                    <td><button type="button" class="btn btn-sm text-danger" onclick="$(this).closest('tr').remove(); recalculate();"><i class="fas fa-trash"></i></button></td>
+                `;
+                document.getElementById('tbodyItems').appendChild(tr);
+                recalculate();
+            }
+
+            window.updateRow = function(input) {
+                const tr = input.closest('tr');
+                const cant = parseFloat($(tr).find('[name="cantidad"]').val()) || 0;
+                const precio = parseFloat($(tr).find('[name="precioUnitario"]').val()) || 0;
+                $(tr).find('.subtotal-cell').text((cant * precio).toFixed(2));
+                recalculate();
+            };
+
+            function recalculate() {
+                let subtotal = 0;
+                $('.subtotal-cell').each(function() { subtotal += parseFloat($(this).text()) || 0; });
+                const descuento = parseFloat($('#inputDescuento').val()) || 0;
+                const total = subtotal - descuento;
+                const sim = '@ViewBag.MonedaBase?.Simbolo';
+                $('#lblSubtotal').text(sim + ' ' + subtotal.toFixed(2));
+                $('#lblDescuento').text('- ' + sim + ' ' + descuento.toFixed(2));
+                $('#lblTotal').text(sim + ' ' + total.toFixed(2));
+                $('#btnGuardar').prop('disabled', $('.subtotal-cell').length === 0);
+            }
+            $('#inputDescuento').on('input', recalculate);
+
+            // AJAX Final Submit
+            $('#formCuenta').on('submit', function(e) {
+                e.preventDefault();
+                const $btn = $('#btnGuardar');
+                $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Guardando...');
+                
+                $.ajax({
+                    url: '@Url.Action("Create")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function(resp) {
+                        if (resp.success) { location.href = '/Caja/Details/' + resp.id; }
+                        else { alert(resp.message || 'Error'); $btn.prop('disabled', false).html('<i class="fas fa-save me-2"></i>Finalizar Cuenta'); }
+                    },
+                    error: function() { alert('Error de comunicación'); $btn.prop('disabled', false).html('<i class="fas fa-save me-2"></i>Finalizar Cuenta'); }
+                });
+            });
+        });
+    </script>
+}

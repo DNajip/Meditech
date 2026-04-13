@@ -572,8 +572,20 @@
         $(document).ready(function () {
             console.log("MediTech Treatments Module Initialized");
 
-            // Scroll suave si hay paginación
+            // Auto-open modal logic for Dashboard Quick Actions
             const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('autoOpen') === '1') {
+                const createModalElem = document.getElementById('createTratamientoModal');
+                if (createModalElem) {
+                    const createModal = new bootstrap.Modal(createModalElem);
+                    createModal.show();
+                    
+                    // Clean URL to avoid reopening on refresh
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            }
+
+            // Scroll suave si hay paginación
             if (urlParams.has('page')) {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }

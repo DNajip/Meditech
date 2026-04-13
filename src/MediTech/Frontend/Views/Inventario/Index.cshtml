@@ -452,6 +452,19 @@
         $(document).ready(function () {
             console.log("MediTech Inventory Module Initialized");
 
+            // Auto-open modal logic for Dashboard Quick Actions
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('autoOpen') === '1') {
+                const createModalElem = document.getElementById('createProductoModal');
+                if (createModalElem) {
+                    const createModal = new bootstrap.Modal(createModalElem);
+                    createModal.show();
+                    
+                    // Clean URL to avoid reopening on refresh
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            }
+
             // Modal Instances
             const adjustmentModal = new bootstrap.Modal(document.getElementById('ajusteStockModal'));
             const editModal = new bootstrap.Modal(document.getElementById('editProductoModal'));

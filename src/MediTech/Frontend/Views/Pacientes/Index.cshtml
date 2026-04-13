@@ -160,9 +160,9 @@
         <h2 class="mb-0"><i class="fas fa-user-injured me-2" style="color:#3B82F6;"></i>Pacientes</h2>
         <span class="subtitle">Gestión de pacientes registrados <strong class="ms-2 d-none d-sm-inline">(@ViewBag.TotalItems total)</strong></span>
     </div>
-    <a href="@Url.Action("Create")" class="btn btn-primary px-4 py-2" style="border-radius:12px; font-weight:600; width: auto !important;">
+    <button type="button" class="btn btn-primary px-4 py-2" data-bs-toggle="modal" data-bs-target="#createPacienteModal" style="border-radius:12px; font-weight:600; width: auto !important;">
         <i class="fas fa-plus me-1"></i> Nuevo Paciente
-    </a>
+    </button>
 </div>
 
 <form method="get" class="mb-4 mt-3">
@@ -295,9 +295,150 @@
     }
 </div>
 
-@section Scripts {
-<script>
-    setTimeout(() => { var t = document.getElementById('toast'); if (t) t.style.display = 'none'; }, 4000);
-</script>
+
+
+@section Modals {
+    <!-- Modal: Registro de Nuevo Paciente (Premium) -->
+    <div class="modal fade" id="createPacienteModal" tabindex="-1" aria-labelledby="createPacienteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
+                <div class="modal-header bg-transparent border-0 pt-4 px-4 d-flex align-items-center">
+                    <div class="icon-shape bg-soft-primary rounded-circle me-3 p-3">
+                        <i class="fas fa-user-plus text-primary fs-4"></i>
+                    </div>
+                    <div>
+                        <h4 class="modal-title fw-bold text-dark mb-0" id="createPacienteModalLabel">Nuevo Registro de Paciente</h4>
+                        <p class="text-muted small mb-0">Complete los datos obligatorios (*) para el nuevo expediente</p>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 pt-2">
+                    <form id="createPacienteForm">
+                        @Html.AntiForgeryToken()
+                        <div class="row g-3">
+                            <div class="col-12"><div class="section-title mb-2" style="color:#3B82F6; font-weight:700;"><i class="fas fa-id-card me-2"></i>DATOS PERSONALES</div></div>
+                            <div class="col-sm-6 col-lg-3">
+                                <label class="small fw-bold text-muted">Primer Nombre *</label>
+                                <input name="Persona.PrimerNombre" class="form-control" required />
+                            </div>
+                            <div class="col-sm-6 col-lg-3">
+                                <label class="small fw-bold text-muted">Segundo Nombre</label>
+                                <input name="Persona.SegundoNombre" class="form-control" />
+                            </div>
+                            <div class="col-sm-6 col-lg-3">
+                                <label class="small fw-bold text-muted">Primer Apellido *</label>
+                                <input name="Persona.PrimerApellido" class="form-control" required />
+                            </div>
+                            <div class="col-sm-6 col-lg-3">
+                                <label class="small fw-bold text-muted">Segundo Apellido</label>
+                                <input name="Persona.SegundoApellido" class="form-control" />
+                            </div>
+
+                            <div class="col-sm-6 col-lg-3">
+                                <label class="small fw-bold text-muted">Género</label>
+                                <select name="Persona.IdGenero" class="form-select" required>
+                                    <option value="">Seleccione</option>
+                                    @if (ViewBag.Generos != null) {
+                                        @foreach (var g in (IEnumerable<MediTech.Backend.Models.Genero>)ViewBag.Generos) { <option value="@g.IdGenero">@g.DescGenero</option> }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-sm-6 col-lg-3">
+                                <label class="small fw-bold text-muted">Tipo Identificación</label>
+                                <select name="Persona.IdTipoIdentificacion" class="form-select">
+                                    <option value="">Seleccione</option>
+                                    @if (ViewBag.TiposIdentificacion != null) {
+                                        @foreach (var t in (IEnumerable<MediTech.Backend.Models.TipoIdentificacion>)ViewBag.TiposIdentificacion) { <option value="@t.IdTipoIdentificacion">@t.DescTipo</option> }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-sm-6 col-lg-3">
+                                <label class="small fw-bold text-muted">N° Identificación</label>
+                                <input name="Persona.NumIdentificacion" class="form-control" />
+                            </div>
+                            <div class="col-sm-6 col-lg-3">
+                                <label class="small fw-bold text-muted">Fecha de Nacimiento *</label>
+                                <input name="Persona.FechaNacimiento" type="date" class="form-control" required />
+                            </div>
+
+                            <div class="col-sm-6 col-lg-4">
+                                <label class="small fw-bold text-muted">Ocupación</label>
+                                <input name="Ocupacion" class="form-control" />
+                            </div>
+                            <div class="col-sm-6 col-lg-4">
+                                <label class="small fw-bold text-muted">Correo Electrónico</label>
+                                <input name="Persona.Email" type="email" class="form-control" />
+                            </div>
+                            <div class="col-sm-12 col-lg-4">
+                                <label class="small fw-bold text-muted">Teléfono *</label>
+                                <input name="Persona.Telefono" class="form-control" required />
+                            </div>
+                            <div class="col-12">
+                                <label class="small fw-bold text-muted">Dirección</label>
+                                <textarea name="Persona.Direccion" class="form-control" rows="2"></textarea>
+                            </div>
+
+                            <div class="col-12 mt-4"><div class="section-title mb-2" style="color:#F59E0B; font-weight:700;"><i class="fas fa-phone-alt me-2"></i>CONTACTO DE EMERGENCIA</div></div>
+                            <div class="col-md-6">
+                                <label class="small fw-bold text-muted">Nombre del Contacto</label>
+                                <input name="ContactoEmergencia" class="form-control" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small fw-bold text-muted">Teléfono de Emergencia</label>
+                                <input name="TelefonoEmergencia" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-3 mt-5 pt-3 border-top">
+                            <button type="button" class="btn btn-light-premium px-4" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary-premium px-5 shadow-sm">
+                                <i class="fas fa-save me-2"></i>Guardar Paciente
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 }
 
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Toast timeout logic
+            setTimeout(() => { var t = document.getElementById('toast'); if (t) t.style.display = 'none'; }, 4000);
+
+            // Auto-open logic
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('autoOpen') === '1') {
+                const modal = new bootstrap.Modal(document.getElementById('createPacienteModal'));
+                modal.show();
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            // AJAX Submit
+            $('#createPacienteForm').on('submit', function(e) {
+                e.preventDefault();
+                const $form = $(this);
+                const $btn = $form.find('button[type="submit"]');
+                const originalText = $btn.html();
+
+                $btn.html('<i class="fas fa-spinner fa-spin me-2"></i>Guardando...').prop('disabled', true);
+
+                $.ajax({
+                    url: '@Url.Action("Create")',
+                    type: 'POST',
+                    data: $form.serialize(),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function(response) {
+                        location.reload();
+                    },
+                    error: function(xhr) {
+                        alert("Error al registrar paciente. Verifique los datos o si ya existe.");
+                        $btn.html(originalText).prop('disabled', false);
+                    }
+                });
+            });
+        });
+    </script>
+}

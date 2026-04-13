@@ -143,6 +143,19 @@ public class CajaController : Controller
         ViewBag.FechaFilter = fecha?.ToString("yyyy-MM-dd");
         ViewBag.BuscarFilter = buscar;
 
+        // Cargar catálogos para el modal de creación (Navegación rápida Dashboard)
+        ViewBag.Tratamientos = await _context.Tratamientos
+            .Where(t => t.IdEstado == 1)
+            .OrderBy(t => t.NombreTratamiento)
+            .ToListAsync();
+
+        ViewBag.Productos = await _context.Productos
+            .Where(p => p.Activo && p.Stock > 0)
+            .OrderBy(p => p.Nombre)
+            .ToListAsync();
+
+        ViewBag.Monedas = await _context.Monedas.ToListAsync();
+
         return View(cuentas);
     }
 
@@ -209,6 +222,45 @@ public class CajaController : Controller
             return StatusCode(500, new { success = false, message = "Error interno de servidor." });
         }
     }
+
+    // AJAX: Buscar Tratamientos (Dashboard Quick Actions Support) - FORCED ROUTE
+    [HttpGet("Caja/GetTratamientosSearch")]
+    public async Task<IActionResult> GetTratamientosSearch(string term)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(term) || term.Length < 2) return Json(new List<object>());
+            var pattern = $"%{term}%";
+            var results = await _context.Tratamientos
+                .AsNoTracking()
+                .Where(t => t.IdEstado == 1 && EF.Functions.Like(t.NombreTratamiento, pattern))
+                .Take(10)
+                .Select(t => new { id = t.IdTratamiento, nombre = t.NombreTratamiento, precio = t.Precio })
+                .ToListAsync();
+            return Json(results);
+        }
+        catch { return Json(new List<object>()); }
+    }
+
+    // AJAX: Buscar Productos (Dashboard Quick Actions Support) - FORCED ROUTE
+    [HttpGet("Caja/GetProductosSearch")]
+    public async Task<IActionResult> GetProductosSearch(string term)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(term) || term.Length < 2) return Json(new List<object>());
+            var pattern = $"%{term}%";
+            var results = await _context.Productos
+                .AsNoTracking()
+                .Where(p => p.Activo && p.Stock > 0 && EF.Functions.Like(p.Nombre, pattern))
+                .Take(10)
+                .Select(p => new { id = p.IdProducto, nombre = p.Nombre, precio = p.Precio, stock = p.Stock })
+                .ToListAsync();
+            return Json(results);
+        }
+        catch { return Json(new List<object>()); }
+    }
+
 
     // ViewModel para creación de cuenta
     public class CreateCuentaViewModel

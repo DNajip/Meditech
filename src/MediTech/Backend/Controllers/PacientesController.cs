@@ -42,6 +42,10 @@ public class PacientesController(MediTechContext context) : Controller
         ViewBag.TotalPages = (int)Math.Ceiling((double)totalItems / pageSize);
         ViewBag.TotalItems = totalItems;
 
+        // Cargar catálogos para el modal de creación
+        ViewBag.TiposIdentificacion = await _context.TiposIdentificacion.Where(t => t.IdEstado == 1).ToListAsync();
+        ViewBag.Generos = await _context.Generos.Where(g => g.IdEstado == 1).ToListAsync();
+
         return View(pacientes);
     }
 
