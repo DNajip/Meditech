@@ -37,5 +37,25 @@ $(document).ready(function () {
         });
     }
 
-    console.log("MediTech Navigation initialized - QA Robustness Check Passed.");
+    // --- Global Numeric Input Validation ---
+    // Prevent non-numeric characters in phone-like fields
+    $(document).on('input', '.num-only', function() {
+        this.value = this.value.replace(/\D/g, '');
+    });
+
+    // Optional: Also handle keydown for better UX
+    $(document).on('keydown', '.num-only', function(e) {
+        // Allow: backspace, delete, tab, escape, enter, control+a, home, end, left, right
+        if ($.inArray(e.keyCode, [46, 8, 9, 27, 13, 110]) !== -1 ||
+            (e.keyCode === 65 && (e.ctrlKey === true || e.metaKey === true)) || 
+            (e.keyCode >= 35 && e.keyCode <= 40)) {
+                 return;
+        }
+        // Ensure that it is a number and stop the keypress
+        if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+            e.preventDefault();
+        }
+    });
+
+    console.log("MediTech Global Validations initialized.");
 });

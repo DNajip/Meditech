@@ -564,6 +564,166 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     };
 
+    // --- Restored Autocomplete Logic ---
+
+    // 1. Patient Search
+    const patientSearchInput = document.getElementById('modalPacienteSearch');
+    const patientResultsDiv = document.getElementById('pacienteSearchResults');
+    
+    patientSearchInput?.addEventListener('input', debounce(function() {
+        const term = this.value;
+        if (term.length < 2) {
+            patientResultsDiv.style.display = 'none';
+            return;
+        }
+
+        fetch(`/Citas/BuscarPacientes?term=${encodeURIComponent(term)}`)
+            .then(r => r.json())
+            .then(data => {
+                if (!data || data.length === 0) {
+                    patientResultsDiv.style.display = 'none';
+                    return;
+                }
+                
+                patientResultsDiv.innerHTML = data.map(p => {
+                    const extraFields = p.isProspect ? 
+                        `'${p.primerNombre || ''}', '${p.segundoNombre || ''}', '${p.primerApellido || ''}', '${p.segundoApellido || ''}'` : 
+                        "null, null, null, null";
+                    
+                    return `
+                        <button type="button" class="list-group-item list-group-item-action py-2 px-3 small border-0 border-bottom" 
+                                onclick="window.selectPatientFromSearch(${p.id}, '${p.label}', '${p.telefono || ''}', ${p.isProspect}, ${extraFields})">
+                            <i class="bi bi-person${p.isProspect ? '-plus text-warning' : '-check text-primary'} me-2"></i> ${p.label}
+                        </button>`;
+                }).join('');
+                patientResultsDiv.style.display = 'block';
+            });
+    }, 400));
+
+    window.selectPatientFromSearch = function(id, label, telefono, isProspect, pNome, sNome, pApel, sApel) {
+        const telInput = document.getElementById('modalTelefono');
+
+        if (isProspect) {
+            document.getElementById('PosiblePacienteId').value = id;
+            document.getElementById('PacienteId').value = "";
+            
+            // Fill prospect fields
+            document.getElementById('modalProspectoNombre').value = pNome || "";
+            document.getElementById('modalProspectoSegundoNombre').value = sNome || "";
+            document.getElementById('modalProspectoApellido').value = pApel || "";
+            document.getElementById('modalProspectoSegundoApellido').value = sApel || "";
+            
+            // Switch to Prospect Tab
+            document.getElementById('tipoNuevoProspecto').checked = true;
+            window.toggleFields('prospecto');
+
+        } else {
+            document.getElementById('PacienteId').value = id;
+            document.getElementById('PosiblePacienteId').value = "";
+            
+            // Switch to Patient Tab (in case it was on prospect)
+            document.getElementById('tipoPacienteExistente').checked = true;
+            window.toggleFields('paciente');
+        }
+        
+        patientSearchInput.value = label;
+        patientResultsDiv.style.display = 'none';
+        
+        // Auto-fill phone
+        if (telefono) {
+            if (telInput) telInput.value = telefono;
+            document.getElementById('phoneMatchAlert')?.classList.add('d-none');
+        }
+    };
+
+    // 2. Treatment Search
+    const treatmentSearchInput = document.getElementById('modalTratamientoSearch');
+    const treatmentResultsDiv = document.getElementById('tratamientoSearchResults');
+    
+    treatmentSearchInput?.addEventListener('input', debounce(function() {
+        const term = this.value;
+        if (term.length < 2) {
+            treatmentResultsDiv.style.display = 'none';
+            return;
+        }
+
+        fetch(`/Citas/BuscarTratamientos?term=${encodeURIComponent(term)}`)
+            .then(r => r.json())
+            .then(data => {
+                if (!data || data.length === 0) {
+                    treatmentResultsDiv.style.display = 'none';
+                    return;
+                }
+                
+                treatmentResultsDiv.innerHTML = data.map(t => `
+                    <button type="button" class="list-group-item list-group-item-action py-2 px-3 small border-0 border-bottom" 
+                            onclick="window.selectTreatmentFromSearch(${t.id}, '${t.nombre}')">
+                        <i class="bi bi-heart-pulse text-primary me-2"></i> ${t.nombre}
+                    </button>
+                `).join('');
+                treatmentResultsDiv.style.display = 'block';
+            });
+    }, 400));
+
+    window.selectTreatmentFromSearch = function(id, nombre) {
+        document.getElementById('modalTratamientoId').value = id;
+        treatmentSearchInput.value = nombre;
+        treatmentResultsDiv.style.display = 'none';
+    };
+
+    // 3. Phone Match Logic
+    const phoneInput = document.getElementById('modalTelefono');
+    const phoneAlert = document.getElementById('phoneMatchAlert');
+    
+    phoneInput?.addEventListener('input', debounce(function() {
+        const val = this.value.replace(/\D/g, '');
+        if (val.length < 8) {
+            phoneAlert?.classList.add('d-none');
+            return;
+        }
+
+        fetch(`/Citas/BuscarPacientePorTelefono?telefono=${val}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    lastMatchData = data;
+                    phoneAlert?.classList.remove('d-none');
+                } else {
+                    phoneAlert?.classList.add('d-none');
+                }
+            });
+    }, 600));
+
+    window.useExistingRecord = function() {
+        if (!lastMatchData) return;
+        
+        if (lastMatchData.isProspect) {
+            document.getElementById('PosiblePacienteId').value = lastMatchData.id;
+            document.getElementById('PacienteId').value = "";
+        } else {
+            document.getElementById('PacienteId').value = lastMatchData.id;
+            document.getElementById('PosiblePacienteId').value = "";
+        }
+        
+        if (patientSearchInput) patientSearchInput.value = lastMatchData.nombre;
+        
+        document.getElementById('tipoPacienteExistente').checked = true;
+        window.toggleFields('paciente');
+        phoneAlert?.classList.add('d-none');
+        
+        MediToast.success("Viculado correctamente.");
+    };
+
+    // Close autocompletes on click outside
+    document.addEventListener('click', e => {
+        if (!patientResultsDiv?.contains(e.target) && e.target !== patientSearchInput) {
+            patientResultsDiv.style.display = 'none';
+        }
+        if (!treatmentResultsDiv?.contains(e.target) && e.target !== treatmentSearchInput) {
+            treatmentResultsDiv.style.display = 'none';
+        }
+    });
+
     // Startup
     window.loadTodayAgenda();
 });

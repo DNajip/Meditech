@@ -31,10 +31,10 @@
                 <div class="card-body">
                     <h6 class="fw-bold text-uppercase small ls-1 mb-3">Acciones Rápidas</h6>
                     <div class="d-grid gap-2">
-                        <a asp-action="Ajustar" asp-route-id="@Model.IdProducto" class="btn btn-info text-white">
+                        <a href="@Url.Action("Index", "Inventario", new { autoOpenAjuste = Model.IdProducto })" class="btn btn-info text-white">
                             <i class="fas fa-exchange-alt me-2"></i>Ajustar Stock
                         </a>
-                        <a asp-action="Edit" asp-route-id="@Model.IdProducto" class="btn btn-outline-primary">
+                        <a href="@Url.Action("Index", "Inventario", new { autoOpenEdit = Model.IdProducto })" class="btn btn-outline-primary">
                             <i class="fas fa-edit me-2"></i>Editar Datos
                         </a>
                         <a asp-action="Index" class="btn btn-light">Volver a la Lista</a>

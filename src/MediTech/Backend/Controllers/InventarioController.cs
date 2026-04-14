@@ -99,8 +99,6 @@ namespace MediTech.Backend.Controllers
 
             if (producto == null) return NotFound();
 
-
-
             // Obtener movimientos de forma separada para paginación eficiente
             var totalMovimientos = await _context.MovimientosInventario
                 .Where(m => m.IdProducto == id)

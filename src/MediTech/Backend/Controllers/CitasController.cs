@@ -510,7 +510,11 @@ public class CitasController(MediTechContext context, ILogger<CitasController> l
                 id = p.IdPosiblePaciente,
                 label = "[PROSPECTO] " + p.PrimerNombre + " " + p.PrimerApellido + " - " + p.Telefono,
                 isProspect = true,
-                telefono = p.Telefono
+                telefono = p.Telefono,
+                primerNombre = p.PrimerNombre,
+                segundoNombre = p.SegundoNombre,
+                primerApellido = p.PrimerApellido,
+                segundoApellido = p.SegundoApellido
             })
             .Take(5)
             .ToListAsync();
@@ -627,9 +631,16 @@ public class CitasController(MediTechContext context, ILogger<CitasController> l
         if (string.IsNullOrWhiteSpace(telefono))
             return Json(new { success = false });
 
-        var paciente = await _context.Pacientes
+        var cleanTerm = new string(telefono.Where(char.IsDigit).ToArray());
+        if (cleanTerm.Length < 8) return Json(new { success = false });
+
+        var pacientes = await _context.Pacientes
             .Include(p => p.Persona)
-            .FirstOrDefaultAsync(p => p.IdEstado == 1 && p.Persona!.Telefono == telefono);
+            .Where(p => p.IdEstado == 1 && p.Persona!.Telefono != null)
+            .ToListAsync();
+
+        var paciente = pacientes.FirstOrDefault(p => 
+            new string(p.Persona!.Telefono!.Where(char.IsDigit).ToArray()) == cleanTerm);
 
         if (paciente != null)
         {
@@ -641,8 +652,12 @@ public class CitasController(MediTechContext context, ILogger<CitasController> l
             });
         }
 
-        var prospecto = await _context.PosiblePacientes
-            .FirstOrDefaultAsync(p => p.IdEstado == 1 && p.Telefono == telefono);
+        var prospectos = await _context.PosiblePacientes
+            .Where(p => p.IdEstado == 1 && p.Telefono != null)
+            .ToListAsync();
+
+        var prospecto = prospectos.FirstOrDefault(p => 
+            new string(p.Telefono!.Where(char.IsDigit).ToArray()) == cleanTerm);
 
         if (prospecto != null)
         {

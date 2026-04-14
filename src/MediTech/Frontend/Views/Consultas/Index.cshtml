@@ -34,6 +34,24 @@
         font-size: 0.75rem;
         font-weight: 600;
     }
+    .pagination-premium .page-link {
+        border: none;
+        background: transparent;
+        color: #64748B;
+        padding: 8px 16px;
+        border-radius: 10px;
+        margin: 0 4px;
+        transition: all 0.2s;
+    }
+    .pagination-premium .page-item.active .page-link {
+        background: #3B82F6;
+        color: white;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    .pagination-premium .page-link:hover:not(.active) {
+        background: #F1F5F9;
+        color: #3B82F6;
+    }
 </style>
 
 <div class="page-header page-header-premium mb-4">
@@ -111,8 +129,6 @@
                                     <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="border-radius: 12px;">
                                         <li><a class="dropdown-item" href="@Url.Action("Details", new { id = item.IdConsulta })"><i class="fas fa-eye me-2 text-primary"></i>Ver Expediente</a></li>
                                         <li><a class="dropdown-item" href="@Url.Action("Edit", new { id = item.IdConsulta })"><i class="fas fa-edit me-2 text-warning"></i>Editar</a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-file-medical me-2"></i>Generar Receta</a></li>
                                     </ul>
                                 </div>
                             </td>
@@ -121,5 +137,34 @@
                 </tbody>
             </table>
     </div>
+
+    <!-- Paginación Premium -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="d-flex justify-content-center mt-4 animate__animated animate__fadeInUp">
+            <nav aria-label="Page navigation">
+                <ul class="pagination pagination-premium">
+                    <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                        <a class="page-link" href="@Url.Action("Index", new { page = ViewBag.CurrentPage - 1 })" aria-label="Previous">
+                            <i class="fas fa-chevron-left small"></i>
+                        </a>
+                    </li>
+
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
+                            <a class="page-link" href="@Url.Action("Index", new { page = i })">@i</a>
+                        </li>
+                    }
+
+                    <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                        <a class="page-link" href="@Url.Action("Index", new { page = ViewBag.CurrentPage + 1 })" aria-label="Next">
+                            <i class="fas fa-chevron-right small"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
 </div>
 

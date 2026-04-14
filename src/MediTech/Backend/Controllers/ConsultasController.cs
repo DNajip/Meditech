@@ -23,8 +23,13 @@ namespace MediTech.Backend.Controllers
         }
 
         // GET: Consultas
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
+            int pageSize = 6;
+            
+            var totalConsultas = await _context.Consultas.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalConsultas / (double)pageSize);
+
             var consultas = await _context.Consultas
                 .Include(c => c.Cita!)
                     .ThenInclude(ci => ci.Paciente!)
@@ -33,7 +38,13 @@ namespace MediTech.Backend.Controllers
                     .ThenInclude(e => e.Persona!)
                 .Include(c => c.Estado)
                 .OrderByDescending(c => c.FechaConsulta)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalCount = totalConsultas;
 
             return View(consultas);
         }
