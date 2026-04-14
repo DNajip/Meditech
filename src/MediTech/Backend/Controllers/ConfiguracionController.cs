@@ -295,6 +295,56 @@ public class ConfiguracionController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EliminarUsuario(int id)
+    {
+        var usuario = await _context.Usuarios
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.IdUsuario == id);
+
+        if (usuario == null)
+        {
+            return Json(new { success = false, message = "Usuario no encontrado." });
+        }
+
+        // Regla QA: No puede eliminarse a sí mismo
+        if (User.Identity?.Name != null && usuario.Username.Equals(User.Identity.Name, StringComparison.OrdinalIgnoreCase))
+        {
+            return Json(new { success = false, message = "OPERACIÓN CANCELADA: No puede eliminar su propia cuenta de administrador mientras está activo en el sistema." });
+        }
+
+        try
+        {
+            // Regla de Negocio: Si es DOCTOR, suspender para no romper registros médicos (Citas, Consultas)
+            if (usuario.Role?.DescRol?.ToUpper() == "DOCTOR")
+            {
+                usuario.IdEstado = 2; // Suspendido/Inactivo
+                _context.Usuarios.Update(usuario);
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = $"El Doctor {usuario.Username} ha sido SUSPENDIDO exitosamente. Sus registros históricos permanecerán intactos." });
+            }
+
+            // Para otros roles (ASISTENTES, etc.), eliminación física segura
+            // 1. Limpiar permisos/accesos
+            var permisos = await _context.UsuarioModulos.Where(um => um.IdUsuario == id).ToListAsync();
+            if (permisos.Any())
+            {
+                _context.UsuarioModulos.RemoveRange(permisos);
+            }
+
+            // 2. Eliminar registro del usuario
+            _context.Usuarios.Remove(usuario);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = $"El usuario {usuario.Username} ha sido eliminado permanentemente del sistema." });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = "Error de integridad: No se puede eliminar el usuario porque tiene registros vinculados. Considere inactivarlo. Detalles: " + ex.Message });
+        }
+    }
+
     private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
     {
         using (var hmac = new HMACSHA512())

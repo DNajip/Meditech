@@ -19,7 +19,26 @@ public class HomeController(ILogger<HomeController> logger, MediTechContext cont
         ViewBag.TotalPacientes = await _context.Pacientes.CountAsync(p => p.IdEstado == 1);
         ViewBag.PacientesHoy = await _context.Pacientes.CountAsync(p => p.FechaRegistro.HasValue && p.FechaRegistro.Value.Date == today);
 
+        await PrepareDropdowns();
+
         return View();
+    }
+
+    private async Task PrepareDropdowns()
+    {
+        var tiposIdentificacion = await _context.TiposIdentificacion
+            .Where(c => c.IdEstado == 1)
+            .OrderBy(c => c.DescTipo)
+            .Select(c => new { Value = c.IdTipoIdentificacion, Text = c.DescTipo })
+            .ToListAsync();
+        ViewBag.TiposIdentificacion = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(tiposIdentificacion, "Value", "Text");
+
+        var generos = await _context.Generos
+            .Where(c => c.IdEstado == 1)
+            .OrderBy(c => c.DescGenero)
+            .Select(c => new { Value = c.IdGenero, Text = c.DescGenero })
+            .ToListAsync();
+        ViewBag.Generos = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(generos, "Value", "Text");
     }
 
     public IActionResult Privacy()

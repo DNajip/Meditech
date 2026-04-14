@@ -7,49 +7,23 @@
     // Determine greeting based on time of day
     var hour = DateTime.Now.Hour;
     var greeting = hour < 12 ? "Buenos días" : hour < 18 ? "Buenas tardes" : "Buenas noches";
+
+    // Permission Logic (Same as _Layout)
+    var userRole = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
+    var allowedModules = User.Claims.Where(c => c.Type == "Module").Select(c => c.Value).ToList();
+    var isAdmin = userRole == "ADMINISTRADOR";
 }
 
 <style>
-    .greeting h2 {
-        font-size: 1.6rem;
-        font-weight: 700;
-        color: #1E293B;
-        margin-bottom: 4px;
-    }
-    .greeting p {
-        color: #64748B;
-        font-size: 0.9rem;
-    }
+    .greeting h2 { font-size: 1.6rem; font-weight: 700; color: #1E293B; margin-bottom: 4px; }
+    .greeting p { color: #64748B; font-size: 0.9rem; }
 
     /* Stat Cards */
-    .stat-card {
-        background: #FFFFFF;
-        border-radius: 14px;
-        padding: 22px;
-        border: 1px solid #E2E8F0;
-        transition: box-shadow 0.2s;
-    }
+    .stat-card { background: #FFFFFF; border-radius: 14px; padding: 22px; border: 1px solid #E2E8F0; transition: box-shadow 0.2s; text-decoration: none; display: block; }
     .stat-card:hover { box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06); }
-
-    .stat-card .icon-box {
-        width: 44px; height: 44px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.1rem;
-    }
-
-    .stat-card .stat-value {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: #1E293B;
-        margin-top: 12px;
-    }
-    .stat-card .stat-label {
-        font-size: 0.82rem;
-        color: #64748B;
-    }
+    .stat-card .icon-box { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+    .stat-card .stat-value { font-size: 1.8rem; font-weight: 700; color: #1E293B; margin-top: 12px; }
+    .stat-card .stat-label { font-size: 0.82rem; color: #64748B; }
 
     .icon-blue { background: #DBEAFE; color: #3B82F6; }
     .icon-green { background: #D1FAE5; color: #10B981; }
@@ -57,114 +31,52 @@
     .icon-amber { background: #FEF3C7; color: #F59E0B; }
 
     /* Quick Actions */
-    .quick-action-card {
-        background: #FFFFFF;
-        border-radius: 14px;
-        border: 1px solid #E2E8F0;
-        padding: 24px;
-    }
-    .quick-action-card h5 {
-        font-weight: 700;
-        color: #1E293B;
-        margin-bottom: 18px;
-    }
+    .quick-action-card { background: #FFFFFF; border-radius: 14px; border: 1px solid #E2E8F0; padding: 24px; }
+    .quick-action-card h5 { font-weight: 700; color: #1E293B; margin-bottom: 18px; }
+    .action-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 18px 12px; border-radius: 12px; border: 1px solid #E2E8F0; background: #FAFAFA; text-decoration: none; color: #334155; font-size: 0.8rem; font-weight: 500; transition: all 0.15s; text-align: center; }
+    .action-btn:hover { background: #EFF6FF; border-color: #3B82F6; color: #3B82F6; }
+    .action-btn i { font-size: 1.4rem; }
+    .act-blue { color: #3B82F6; }
+    .act-green { color: #10B981; }
+    .act-purple { color: #8B5CF6; }
+    .act-amber { color: #F59E0B; }
 
-    .action-btn {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        padding: 18px 12px;
-        border-radius: 12px;
-        border: 1px solid #E2E8F0;
-        background: #FAFAFA;
-        text-decoration: none;
-        color: #334155;
-        font-size: 0.8rem;
+    /* Agenda Card Dashboard */
+    .agenda-card { background: #FFFFFF; border-radius: 14px; border: 1px solid #E2E8F0; padding: 24px; min-height: 480px; }
+    .agenda-card h5 { font-weight: 700; color: #1E293B; }
+    .agenda-card .subtitle { font-size: 0.8rem; color: #94A3B8; }
+    
+    /* Specific styles for dashboard agenda items to match premium look */
+    #agendaHoyListDashboard .today-card {
+        border: 1px solid #F1F5F9 !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
+    }
+    #agendaHoyListDashboard .badge {
         font-weight: 500;
-        transition: all 0.15s;
-        text-align: center;
-    }
-    .action-btn:hover {
-        background: #EFF6FF;
-        border-color: #3B82F6;
-        color: #3B82F6;
-    }
-    .action-btn i {
-        font-size: 1.4rem;
-    }
-    .action-btn .act-blue { color: #3B82F6; }
-    .action-btn .act-green { color: #10B981; }
-    .action-btn .act-purple { color: #8B5CF6; }
-    .action-btn .act-amber { color: #F59E0B; }
-
-    /* Agenda Card */
-    .agenda-card {
-        background: #FFFFFF;
-        border-radius: 14px;
-        border: 1px solid #E2E8F0;
-        padding: 24px;
-    }
-    .agenda-card h5 {
-        font-weight: 700;
-        color: #1E293B;
-    }
-    .agenda-card .subtitle {
-        font-size: 0.8rem;
-        color: #94A3B8;
+        padding: 4px 8px;
     }
 
-    .agenda-item {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        padding: 12px 0;
-        border-bottom: 1px solid #F1F5F9;
-    }
-    .agenda-item:last-child { border-bottom: none; }
-
-    .agenda-avatar {
-        width: 40px; height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        font-size: 0.78rem;
-        color: #FFFFFF;
-    }
-    .agenda-item-info { flex: 1; }
-    .agenda-item-info .patient-name { font-weight: 600; font-size: 0.88rem; color: #1E293B; }
-    .agenda-item-info .patient-service { font-size: 0.78rem; color: #64748B; }
-
-    .agenda-time { text-align: right; }
-    .agenda-time .time { font-weight: 600; font-size: 0.85rem; color: #1E293B; }
-    .agenda-time .duration { font-size: 0.72rem; color: #94A3B8; }
-
-    .badge-status {
-        font-size: 0.7rem;
-        padding: 3px 10px;
-        border-radius: 20px;
-        font-weight: 600;
-    }
-    .badge-confirmed { background: #D1FAE5; color: #065F46; }
-    .badge-waiting { background: #FEF3C7; color: #92400E; }
-    .badge-scheduled { background: #DBEAFE; color: #1E40AF; }
-
+    /* Mobile Adjustments */
     @@media (max-width: 1200px) {
         .greeting h2 { font-size: 1.4rem; }
-        .stat-card { padding: 18px; }
         .stat-card .stat-value { font-size: 1.6rem; }
-        .action-btn { padding: 15px 10px; font-size: 0.75rem; }
-        .action-btn i { font-size: 1.2rem; }
     }
 
-    @@media (max-width: 575.98px) {
-        .greeting h2 { font-size: 1.3rem; }
-        .stat-card .stat-value { font-size: 1.5rem; }
+    /* Custom Scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
     }
-
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #F1F5F9;
+        border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #CBD5E1;
+        border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #94A3B8;
+    }
 </style>
 
 <!-- Greeting -->
@@ -175,45 +87,42 @@
 
 <!-- Stat Cards -->
 <div class="row g-3 mb-4">
-    <div class="col-sm-6 col-lg-3">
-        <a href="/Pacientes" style="text-decoration:none;">
-        <div class="stat-card">
-            <div class="d-flex justify-content-between align-items-start">
+    <div class="col-sm-6 col-lg-4">
+        @if (allowedModules.Contains("Pacientes") || isAdmin) {
+            <a href="/Pacientes" class="stat-card">
                 <div class="icon-box icon-blue"><i class="fas fa-users"></i></div>
+                <div class="stat-value">@ViewBag.TotalPacientes</div>
+                <div class="stat-label">Total Pacientes</div>
+            </a>
+        } else {
+            <div class="stat-card">
+                <div class="icon-box icon-blue"><i class="fas fa-users"></i></div>
+                <div class="stat-value">@ViewBag.TotalPacientes</div>
+                <div class="stat-label">Total Pacientes</div>
             </div>
-            <div class="stat-value">@ViewBag.TotalPacientes</div>
-            <div class="stat-label">Total Pacientes</div>
-        </div>
-        </a>
+        }
     </div>
-    <div class="col-sm-6 col-lg-3">
+    <div class="col-sm-6 col-lg-4">
         <div class="stat-card">
-            <div class="d-flex justify-content-between align-items-start">
-                <div class="icon-box icon-green"><i class="fas fa-dollar-sign"></i></div>
-            </div>
+            <div class="icon-box icon-green"><i class="fas fa-dollar-sign"></i></div>
             <div class="stat-value">$0</div>
             <div class="stat-label">Ingresos Estimados</div>
         </div>
     </div>
-    <div class="col-sm-6 col-lg-3">
-        <a href="/Pacientes" style="text-decoration:none;">
-        <div class="stat-card">
-            <div class="d-flex justify-content-between align-items-start">
+    <div class="col-sm-6 col-lg-4">
+        @if (allowedModules.Contains("Pacientes") || isAdmin) {
+            <a href="/Pacientes" class="stat-card">
                 <div class="icon-box icon-purple"><i class="fas fa-user-plus"></i></div>
+                <div class="stat-value">@ViewBag.PacientesHoy</div>
+                <div class="stat-label">Pacientes Hoy</div>
+            </a>
+        } else {
+            <div class="stat-card">
+                <div class="icon-box icon-purple"><i class="fas fa-user-plus"></i></div>
+                <div class="stat-value">@ViewBag.PacientesHoy</div>
+                <div class="stat-label">Pacientes Hoy</div>
             </div>
-            <div class="stat-value">@ViewBag.PacientesHoy</div>
-            <div class="stat-label">Pacientes Hoy</div>
-        </div>
-        </a>
-    </div>
-    <div class="col-sm-6 col-lg-3">
-        <div class="stat-card">
-            <div class="d-flex justify-content-between align-items-start">
-                <div class="icon-box icon-amber"><i class="fas fa-clock"></i></div>
-            </div>
-            <div class="stat-value">0</div>
-            <div class="stat-label">En Sala de Espera</div>
-        </div>
+        }
     </div>
 </div>
 
@@ -222,56 +131,78 @@
     <!-- Agenda de Hoy -->
     <div class="col-lg-8">
         <div class="agenda-card">
-            <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h5 class="mb-0">Agenda de Hoy</h5>
-                    <span class="subtitle">Mostrando citas próximas</span>
+                    <span class="subtitle">Tus compromisos para este día</span>
                 </div>
-                <a href="#" class="btn btn-primary btn-sm" style="border-radius:8px;">
-                    <i class="fas fa-plus me-1"></i> Nueva Cita
-                </a>
             </div>
 
-            <div class="text-center py-4 text-muted">
-                <i class="fas fa-calendar-day fa-2x mb-2" style="color: #CBD5E1;"></i>
-                <p class="mb-0">No hay citas programadas para hoy.</p>
-                <small>Las citas aparecerán aquí cuando se registren.</small>
+            <!-- Dynamic Agenda Container with Scroll -->
+            <div id="agendaHoyListDashboard" class="agenda-container custom-scrollbar" style="max-height: 400px; overflow-y: auto; padding-right: 8px;">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary opacity-25" role="status"></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Quick Actions + GCal -->
+    <!-- Quick Actions -->
     <div class="col-lg-4">
         <div class="quick-action-card mb-3">
             <h5>Acciones Rápidas</h5>
             <div class="row g-2">
-                <div class="col-6">
-                    <a href="/Pacientes?autoOpen=1" class="action-btn w-100">
-                        <i class="fas fa-user-plus act-blue"></i>
-                        Nuevo Paciente
-                    </a>
-                </div>
-                <div class="col-6">
-                    <a href="/Caja?autoOpen=1" class="action-btn w-100">
-                        <i class="fas fa-file-invoice-dollar act-green"></i>
-                        Nueva Cuenta
-                    </a>
-                </div>
-                <div class="col-6">
-                    <a href="/Tratamientos?autoOpen=1" class="action-btn w-100">
-                        <i class="fas fa-hand-holding-medical act-purple"></i>
-                        Tratamiento
-                    </a>
-                </div>
-                <div class="col-6">
-                    <a href="/Inventario?autoOpen=1" class="action-btn w-100">
-                        <i class="fas fa-boxes act-amber"></i>
-                        Inventario
-                    </a>
-                </div>
+                @if (allowedModules.Contains("Pacientes") || isAdmin) {
+                    <div class="col-6">
+                        <a href="/Pacientes?autoOpen=1" class="action-btn w-100">
+                            <i class="fas fa-user-plus act-blue"></i>
+                            <span>Nuevo Paciente</span>
+                        </a>
+                    </div>
+                }
+                @if (allowedModules.Contains("Caja") || isAdmin) {
+                    <div class="col-6">
+                        <a href="/Caja?autoOpen=1" class="action-btn w-100">
+                            <i class="fas fa-file-invoice-dollar act-green"></i>
+                            <span>Nueva Cuenta</span>
+                        </a>
+                    </div>
+                }
+                @if (allowedModules.Contains("Tratamientos") || isAdmin) {
+                    <div class="col-6">
+                        <a href="/Tratamientos?autoOpen=1" class="action-btn w-100">
+                            <i class="fas fa-hand-holding-medical act-purple"></i>
+                            <span>Tratamiento</span>
+                        </a>
+                    </div>
+                }
+                @if (allowedModules.Contains("Inventario") || isAdmin) {
+                    <div class="col-6">
+                        <a href="/Inventario?autoOpen=1" class="action-btn w-100">
+                            <i class="fas fa-boxes act-amber"></i>
+                            <span>Inventario</span>
+                        </a>
+                    </div>
+                }
             </div>
         </div>
-
-
     </div>
 </div>
+
+@await Html.PartialAsync("_AgendaShared")
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/citas-calendar.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script src="~/js/citas-calendar.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Dashboard specific initialization if needed
+            if (window.loadTodayAgenda) {
+                window.loadTodayAgenda('agendaHoyListDashboard');
+            }
+        });
+    </script>
+}

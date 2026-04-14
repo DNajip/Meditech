@@ -114,13 +114,13 @@
                 <tbody>
                     @foreach (var item in Model)
                     {
-                        var stockClass = item.Stock <= 0 ? "text-danger" : (item.Stock <= item.StockMinimo ? "text-warning" : "text-success");
-                        var badgeClass = item.Stock <= 0 ? "bg-soft-danger text-danger" : (item.Stock <= item.StockMinimo ? "bg-soft-warning text-warning" : "bg-soft-success text-success");
-                        var statusText = item.Stock <= 0 ? "Agotado" : (item.Stock <= item.StockMinimo ? "Crítico" : "Disponible");
+                        var stockClass = !item.Activo ? "text-muted" : (item.Stock <= 0 ? "text-danger" : (item.Stock <= item.StockMinimo ? "text-warning" : "text-success"));
+                        var badgeClass = !item.Activo ? "bg-secondary bg-opacity-10 text-secondary" : (item.Stock <= 0 ? "bg-soft-danger text-danger" : (item.Stock <= item.StockMinimo ? "bg-soft-warning text-warning" : "bg-soft-success text-success"));
+                        var statusText = !item.Activo ? "Desactivado" : (item.Stock <= 0 ? "Agotado" : (item.Stock <= item.StockMinimo ? "Crítico" : "Disponible"));
                         
                         double montoTotal = (double)(item.Precio ?? 0) * item.Stock;
 
-                        <tr>
+                        <tr class="@(!item.Activo ? "bg-light bg-opacity-50" : "")">
                             <td class="ps-4">
                                 <div class="d-flex align-items-center">
                                     <div class="avatar-sm bg-soft-primary rounded-circle me-3 d-flex align-items-center justify-content-center">
@@ -146,6 +146,7 @@
                                         percent = Math.Min(percent, 100);
                                         var pClass = item.Stock <= item.StockMinimo ? "bg-warning" : "bg-success";
                                         if (item.Stock <= 0) pClass = "bg-danger";
+                                        if (!item.Activo) pClass = "bg-secondary opacity-50";
                                     }
                                     <div class="progress-bar @pClass" role="progressbar" style="width: @percent%"></div>
                                 </div>
@@ -358,6 +359,7 @@
 
                         <div class="col-md-4 d-flex align-items-center">
                             <div class="form-check form-switch mt-4">
+                                <input type="hidden" name="Activo" value="false" />
                                 <input class="form-check-input" type="checkbox" name="Activo" id="editActivo" value="true">
                                 <label class="form-check-label fw-bold text-dark ms-2" for="editActivo">Producto Activo</label>
                             </div>
