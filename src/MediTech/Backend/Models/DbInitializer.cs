@@ -78,34 +78,42 @@ namespace MediTech.Backend.Models
             }
 
 
-            // SEED DOCTOR
+            /* SEED DOCTOR - Deshabilitado para producción
             if (!context.Usuarios.Any(u => u.Username == "doctor"))
             {
-                var docPersona = new Persona
+                var docPersona = context.Personas.FirstOrDefault(p => p.NumIdentificacion == "111-111111-1111");
+                if (docPersona == null)
                 {
-                    PrimerNombre = "Danny",
-                    PrimerApellido = "Pravia",
-                    IdTipoIdentificacion = 1,
-                    NumIdentificacion = "111-111111-1111",
-                    IdGenero = 1,
-                    FechaNacimiento = new DateTime(1985, 5, 10),
-                    Email = "danny.pravia@meditech.com",
-                    Telefono = "8888-8888",
-                    Direccion = "Consultorio A1",
-                    IdEstado = 1
-                };
-                context.Personas.Add(docPersona);
-                context.SaveChanges();
+                    docPersona = new Persona
+                    {
+                        PrimerNombre = "Danny",
+                        PrimerApellido = "Pravia",
+                        IdTipoIdentificacion = 1,
+                        NumIdentificacion = "111-111111-1111",
+                        IdGenero = 1,
+                        FechaNacimiento = new DateTime(1985, 5, 10),
+                        Email = "danny.pravia@meditech.com",
+                        Telefono = "8888-8888",
+                        Direccion = "Consultorio A1",
+                        IdEstado = 1
+                    };
+                    context.Personas.Add(docPersona);
+                    context.SaveChanges();
+                }
 
-                var docEmpleado = new Empleado
+                var docEmpleado = context.Empleados.FirstOrDefault(e => e.IdPersona == docPersona.IdPersona);
+                if (docEmpleado == null)
                 {
-                    IdPersona = docPersona.IdPersona,
-                    IdRol = 2, // DOCTOR
-                    FechaContratacion = DateTime.Now,
-                    IdEstado = 1
-                };
-                context.Empleados.Add(docEmpleado);
-                context.SaveChanges();
+                    docEmpleado = new Empleado
+                    {
+                        IdPersona = docPersona.IdPersona,
+                        IdRol = 2, // DOCTOR
+                        FechaContratacion = DateTime.Now,
+                        IdEstado = 1
+                    };
+                    context.Empleados.Add(docEmpleado);
+                    context.SaveChanges();
+                }
 
                 CreatePasswordHash("doctor123", out byte[] dHash, out byte[] dSalt);
                 context.Usuarios.Add(new Usuario
@@ -121,34 +129,42 @@ namespace MediTech.Backend.Models
                 Console.WriteLine("Doctor User Seeded Successfully.");
             }
 
-            // SEED ASISTENTE
+            // SEED ASISTENTE - Deshabilitado para producción
             if (!context.Usuarios.Any(u => u.Username == "asistente"))
             {
-                var asisPersona = new Persona
+                var asisPersona = context.Personas.FirstOrDefault(p => p.NumIdentificacion == "222-222222-2222");
+                if (asisPersona == null)
                 {
-                    PrimerNombre = "Maria",
-                    PrimerApellido = "Lopez",
-                    IdTipoIdentificacion = 1,
-                    NumIdentificacion = "222-222222-2222",
-                    IdGenero = 2,
-                    FechaNacimiento = new DateTime(1995, 8, 20),
-                    Email = "maria.lopez@meditech.com",
-                    Telefono = "7777-7777",
-                    Direccion = "Recepción",
-                    IdEstado = 1
-                };
-                context.Personas.Add(asisPersona);
-                context.SaveChanges();
+                    asisPersona = new Persona
+                    {
+                        PrimerNombre = "Maria",
+                        PrimerApellido = "Lopez",
+                        IdTipoIdentificacion = 1,
+                        NumIdentificacion = "222-222222-2222",
+                        IdGenero = 2,
+                        FechaNacimiento = new DateTime(1995, 8, 20),
+                        Email = "maria.lopez@meditech.com",
+                        Telefono = "7777-7777",
+                        Direccion = "Recepción",
+                        IdEstado = 1
+                    };
+                    context.Personas.Add(asisPersona);
+                    context.SaveChanges();
+                }
 
-                var asisEmpleado = new Empleado
+                var asisEmpleado = context.Empleados.FirstOrDefault(e => e.IdPersona == asisPersona.IdPersona);
+                if (asisEmpleado == null)
                 {
-                    IdPersona = asisPersona.IdPersona,
-                    IdRol = 3, // ASISTENTE
-                    FechaContratacion = DateTime.Now,
-                    IdEstado = 1
-                };
-                context.Empleados.Add(asisEmpleado);
-                context.SaveChanges();
+                    asisEmpleado = new Empleado
+                    {
+                        IdPersona = asisPersona.IdPersona,
+                        IdRol = 3, // ASISTENTE
+                        FechaContratacion = DateTime.Now,
+                        IdEstado = 1
+                    };
+                    context.Empleados.Add(asisEmpleado);
+                    context.SaveChanges();
+                }
 
                 CreatePasswordHash("asis123", out byte[] aHash, out byte[] aSalt);
                 context.Usuarios.Add(new Usuario
@@ -163,6 +179,7 @@ namespace MediTech.Backend.Models
                 context.SaveChanges();
                 Console.WriteLine("Asistente User Seeded Successfully.");
             }
+            */
 
             // 4. Ensure Catalogs have Active State (Fix for missing dropdowns)
             Console.WriteLine("Verifying catalog states...");
@@ -180,7 +197,7 @@ namespace MediTech.Backend.Models
                 Console.WriteLine($"Updated {tiposSinEstado.Count} TiposIdentificacion to Active state.");
             }
 
-            SeedTreatments(context);
+            // SeedTreatments(context); // Deshabilitado para producción — tratamientos los registra el médico
 
             // 5. Assign all modules to users for testing (Assign all to admin, some to others)
             var allModules = context.Modulos.ToList();
@@ -193,6 +210,7 @@ namespace MediTech.Backend.Models
                 }
             }
 
+            /* Deshabilitado para producción
             var doctorUser = context.Usuarios.Include(u => u.UsuarioModulos).FirstOrDefault(u => u.Username == "doctor");
             if (doctorUser != null && !doctorUser.UsuarioModulos.Any())
             {
@@ -204,6 +222,7 @@ namespace MediTech.Backend.Models
                     context.UsuarioModulos.Add(new UsuarioModulo { IdUsuario = doctorUser.IdUsuario, IdModulo = mod.IdModulo });
                 }
             }
+            */
 
             context.SaveChanges();
             Console.WriteLine("--- DB INITIALIZER END ---");
@@ -759,25 +778,9 @@ namespace MediTech.Backend.Models
             Console.WriteLine("Schema migrations applied.");
         }
 
-        private static void SeedTreatments(MediTechContext context)
-        {
-            if (context.Tratamientos.Any()) return;
-
-            var usd = context.Monedas.FirstOrDefault(m => m.Codigo == "USD");
-
-            Console.WriteLine("Seeding base treatments...");
-            var treatments = new List<Tratamiento>
-            {
-                new Tratamiento { NombreTratamiento = "CONSULTA GENERAL", Precio = 40, IdEstado = 1 },
-                new Tratamiento { NombreTratamiento = "LIMPIEZA DENTAL", Precio = 50, IdEstado = 1 },
-                new Tratamiento { NombreTratamiento = "EXTRACCION SIMPLE", Precio = 45, IdEstado = 1 },
-                new Tratamiento { NombreTratamiento = "ORTODONCIA - CONTROL", Precio = 35, IdEstado = 1 }
-            };
-
-            context.Tratamientos.AddRange(treatments);
-            context.SaveChanges();
-            Console.WriteLine("Treatments Seeded Successfully.");
-        }
+        // Deshabilitado para producción — los tratamientos deben ser registrados
+        // por el médico desde el módulo de Tratamientos.
+        // private static void SeedTreatments(MediTechContext context) { ... }
 
         private static void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {

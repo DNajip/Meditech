@@ -104,23 +104,23 @@
     </div>
     <div class="col-sm-6 col-lg-4">
         <div class="stat-card">
-            <div class="icon-box icon-green"><i class="fas fa-dollar-sign"></i></div>
-            <div class="stat-value">$0</div>
-            <div class="stat-label">Ingresos Estimados</div>
+            <div class="icon-box icon-green" style="font-weight: 800; font-size: 1.2rem;">@ViewBag.SimboloBase</div>
+            <div class="stat-value">@ViewBag.SimboloBase@ViewBag.IngresosEstimados.ToString("N0")</div>
+            <div class="stat-label">Ingresos Estimados (Hoy)</div>
         </div>
     </div>
     <div class="col-sm-6 col-lg-4">
         @if (allowedModules.Contains("Pacientes") || isAdmin) {
             <a href="/Pacientes" class="stat-card">
                 <div class="icon-box icon-purple"><i class="fas fa-user-plus"></i></div>
-                <div class="stat-value">@ViewBag.PacientesHoy</div>
-                <div class="stat-label">Pacientes Hoy</div>
+                <div class="stat-value">@ViewBag.CitasSemana</div>
+                <div class="stat-label">Citas (Semana)</div>
             </a>
         } else {
             <div class="stat-card">
                 <div class="icon-box icon-purple"><i class="fas fa-user-plus"></i></div>
-                <div class="stat-value">@ViewBag.PacientesHoy</div>
-                <div class="stat-label">Pacientes Hoy</div>
+                <div class="stat-value">@ViewBag.CitasSemana</div>
+                <div class="stat-label">Citas (Semana)</div>
             </div>
         }
     </div>

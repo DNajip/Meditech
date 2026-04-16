@@ -107,7 +107,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div class="text-center text-muted p-5">
                             <i class="bi bi-calendar-x fs-2 opacity-50 mb-2 d-block"></i>
                             <p class="small fw-semibold mb-0">No hay citas para hoy</p>
-                            <button class="btn btn-sm btn-link text-decoration-none mt-1" onclick="window.openCreateModal()">Agendar</button>
                         </div>`;
                     return;
                 }

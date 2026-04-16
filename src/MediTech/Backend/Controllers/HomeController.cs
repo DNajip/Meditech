@@ -16,8 +16,35 @@ public class HomeController(ILogger<HomeController> logger, MediTechContext cont
     {
         var today = DateTime.Today;
 
+        int daysToSunday = today.DayOfWeek == DayOfWeek.Sunday ? 0 : 7 - (int)today.DayOfWeek;
+        var endOfWeek = today.AddDays(daysToSunday);
+
+        // Obtener configuración de moneda base
+        var configMoneda = await _context.ConfiguracionesMoneda
+            .Include(c => c.MonedaBase)
+            .FirstOrDefaultAsync();
+        ViewBag.SimboloBase = configMoneda?.MonedaBase?.Simbolo ?? "$";
+
         ViewBag.TotalPacientes = await _context.Pacientes.CountAsync(p => p.IdEstado == 1);
-        ViewBag.PacientesHoy = await _context.Pacientes.CountAsync(p => p.FechaRegistro.HasValue && p.FechaRegistro.Value.Date == today);
+        
+        // Citas de la semana (hoy hasta domingo), excluyendo canceladas y no asistió
+        ViewBag.CitasSemana = await _context.Citas
+            .Where(c => c.IdEstadoCita != 4 && c.IdEstadoCita != 5
+                     && c.Fecha.Date >= today && c.Fecha.Date <= endOfWeek)
+            .CountAsync();
+
+        // Ingresos estimados: materializar citas de hoy y sumar en memoria
+        // (Include + SumAsync con navigation property no se traduce correctamente a SQL)
+        var citasHoy = await _context.Citas
+            .Include(c => c.Tratamiento)
+            .Where(c => c.Fecha.Date == today
+                     && c.IdEstadoCita != 4 && c.IdEstadoCita != 5
+                     && c.IdTratamiento != null)
+            .ToListAsync();
+
+        ViewBag.IngresosEstimados = citasHoy
+            .Where(c => c.Tratamiento != null)
+            .Sum(c => c.Tratamiento!.Precio ?? 0m);
 
         await PrepareDropdowns();
 

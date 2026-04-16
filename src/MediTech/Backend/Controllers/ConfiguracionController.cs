@@ -316,13 +316,21 @@ public class ConfiguracionController : Controller
 
         try
         {
-            // Regla de Negocio: Si es DOCTOR, suspender para no romper registros médicos (Citas, Consultas)
+            // Regla de Negocio Inteligente para DOCTORES:
             if (usuario.Role?.DescRol?.ToUpper() == "DOCTOR")
             {
-                usuario.IdEstado = 2; // Suspendido/Inactivo
-                _context.Usuarios.Update(usuario);
-                await _context.SaveChangesAsync();
-                return Json(new { success = true, message = $"El Doctor {usuario.Username} ha sido SUSPENDIDO exitosamente. Sus registros históricos permanecerán intactos." });
+                // Verificar si tiene consultas registradas
+                bool tieneConsultas = await _context.Consultas.AnyAsync(c => c.IdMedico == usuario.IdEmpleado);
+
+                if (tieneConsultas)
+                {
+                    usuario.IdEstado = 2; // Suspendido/Inactivo
+                    _context.Usuarios.Update(usuario);
+                    await _context.SaveChangesAsync();
+                    return Json(new { success = true, message = $"El Doctor {usuario.Username} tiene registros médicos y ha sido SUSPENDIDO para preservar el historial. Sus registros permanecerán intactos." });
+                }
+                
+                // Si no tiene consultas, proceder con la eliminación física (más abajo)
             }
 
             // Para otros roles (ASISTENTES, etc.), eliminación física segura
