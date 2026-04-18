@@ -199,14 +199,17 @@ namespace MediTech.Backend.Models
 
             // SeedTreatments(context); // Deshabilitado para producción — tratamientos los registra el médico
 
-            // 5. Assign all modules to users for testing (Assign all to admin, some to others)
+            // 5. Assign all modules to admin (Ensure new modules like Reports are added)
             var allModules = context.Modulos.ToList();
             var adminUser = context.Usuarios.Include(u => u.UsuarioModulos).FirstOrDefault(u => u.Username == "admin");
-            if (adminUser != null && !adminUser.UsuarioModulos.Any())
+            if (adminUser != null)
             {
                 foreach (var mod in allModules)
                 {
-                    context.UsuarioModulos.Add(new UsuarioModulo { IdUsuario = adminUser.IdUsuario, IdModulo = mod.IdModulo });
+                    if (!adminUser.UsuarioModulos.Any(um => um.IdModulo == mod.IdModulo))
+                    {
+                        context.UsuarioModulos.Add(new UsuarioModulo { IdUsuario = adminUser.IdUsuario, IdModulo = mod.IdModulo });
+                    }
                 }
             }
 
@@ -461,6 +464,7 @@ namespace MediTech.Backend.Models
 
             // 3. Add extra columns to CAT.TRATAMIENTOS if they don't exist
             string[] tratamientoColumns = { "DOSIS", "VIA_ADMINISTRACION", "FRECUENCIA", "DURACION_TRATAMIENTO", "FECHA_ACTUALIZACION" };
+#pragma warning disable EF1002 // SQL injection vulnerability (False positive since column names are from a static list)
             foreach (var col in tratamientoColumns)
             {
                 string type = col == "FECHA_ACTUALIZACION" ? "DATETIME2 NULL" : "VARCHAR(100) NULL";
@@ -472,6 +476,7 @@ namespace MediTech.Backend.Models
                     END
                 ");
             }
+#pragma warning restore EF1002
 
             // Professional Currency Model Migrations: 
             // 4.1 Remove ID_MONEDA from items
@@ -769,6 +774,7 @@ namespace MediTech.Backend.Models
                     new Modulo { Nombre = "Consultas", Icono = "fas fa-stethoscope", Controller = "Consultas", Orden = 5, IdEstado = 1 },
                     new Modulo { Nombre = "Inventario", Icono = "fas fa-boxes", Controller = "Inventario", Orden = 6, IdEstado = 1 },
                     new Modulo { Nombre = "Caja y Pagos", Icono = "fas fa-cash-register", Controller = "Caja", Orden = 7, IdEstado = 1 },
+                    new Modulo { Nombre = "Reportes", Icono = "fas fa-chart-bar", Controller = "Reportes", Orden = 8, IdEstado = 1 },
 
                     new Modulo { Nombre = "Configuración", Icono = "fas fa-cog", Controller = "Configuracion", Orden = 9, IdEstado = 1 }
                 );

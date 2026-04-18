@@ -15,15 +15,15 @@
 }
 
 <style>
-    .greeting h2 { font-size: 1.6rem; font-weight: 700; color: #1E293B; margin-bottom: 4px; }
-    .greeting p { color: #64748B; font-size: 0.9rem; }
+    .greeting h2 { font-size: 1.6rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+    .greeting p { color: var(--text-secondary); font-size: 0.9rem; }
 
     /* Stat Cards */
-    .stat-card { background: #FFFFFF; border-radius: 14px; padding: 22px; border: 1px solid #E2E8F0; transition: box-shadow 0.2s; text-decoration: none; display: block; }
+    .stat-card { background: var(--card-bg); border-radius: 14px; padding: 22px; border: 1px solid var(--border-color); transition: box-shadow 0.2s; text-decoration: none; display: block; }
     .stat-card:hover { box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06); }
     .stat-card .icon-box { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
-    .stat-card .stat-value { font-size: 1.8rem; font-weight: 700; color: #1E293B; margin-top: 12px; }
-    .stat-card .stat-label { font-size: 0.82rem; color: #64748B; }
+    .stat-card .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--text-primary); margin-top: 12px; }
+    .stat-card .stat-label { font-size: 0.82rem; color: var(--text-secondary); }
 
     .icon-blue { background: #DBEAFE; color: #3B82F6; }
     .icon-green { background: #D1FAE5; color: #10B981; }
@@ -31,10 +31,10 @@
     .icon-amber { background: #FEF3C7; color: #F59E0B; }
 
     /* Quick Actions */
-    .quick-action-card { background: #FFFFFF; border-radius: 14px; border: 1px solid #E2E8F0; padding: 24px; }
-    .quick-action-card h5 { font-weight: 700; color: #1E293B; margin-bottom: 18px; }
-    .action-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 18px 12px; border-radius: 12px; border: 1px solid #E2E8F0; background: #FAFAFA; text-decoration: none; color: #334155; font-size: 0.8rem; font-weight: 500; transition: all 0.15s; text-align: center; }
-    .action-btn:hover { background: #EFF6FF; border-color: #3B82F6; color: #3B82F6; }
+    .quick-action-card { background: var(--card-bg); border-radius: 14px; border: 1px solid var(--border-color); padding: 24px; }
+    .quick-action-card h5 { font-weight: 700; color: var(--text-primary); margin-bottom: 18px; }
+    .action-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 18px 12px; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-light); text-decoration: none; color: var(--text-secondary); font-size: 0.8rem; font-weight: 500; transition: all 0.15s; text-align: center; }
+    .action-btn:hover { background: #EFF6FF; border-color: var(--primary-blue); color: var(--primary-blue); }
     .action-btn i { font-size: 1.4rem; }
     .act-blue { color: #3B82F6; }
     .act-green { color: #10B981; }
@@ -42,13 +42,14 @@
     .act-amber { color: #F59E0B; }
 
     /* Agenda Card Dashboard */
-    .agenda-card { background: #FFFFFF; border-radius: 14px; border: 1px solid #E2E8F0; padding: 24px; min-height: 480px; }
-    .agenda-card h5 { font-weight: 700; color: #1E293B; }
-    .agenda-card .subtitle { font-size: 0.8rem; color: #94A3B8; }
+    .agenda-card { background: var(--card-bg); border-radius: 14px; border: 1px solid var(--border-color); padding: 24px; min-height: 480px; }
+    .agenda-card h5 { font-weight: 700; color: var(--text-primary); }
+    .agenda-card .subtitle { font-size: 0.8rem; color: var(--text-secondary); }
     
     /* Specific styles for dashboard agenda items to match premium look */
     #agendaHoyListDashboard .today-card {
-        border: 1px solid #F1F5F9 !important;
+        background-color: var(--bg-light) !important;
+        border: 1px solid var(--border-color) !important;
         box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
     }
     #agendaHoyListDashboard .badge {

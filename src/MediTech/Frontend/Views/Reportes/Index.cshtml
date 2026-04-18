@@ -1,0 +1,456 @@
+@{
+    ViewData["Title"] = "Reporte de Ganancias";
+    var simbolo = ViewBag.SimboloBase ?? "$";
+}
+
+<style>
+    :root {
+        --card-grad-1: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
+        --card-grad-2: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        --card-grad-3: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+        --card-grad-4: linear-gradient(135deg, #EC4899 0%, #DB2777 100%);
+    }
+
+    .report-header {
+        margin-bottom: 2rem;
+    }
+
+    .report-header h2 {
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .report-header p {
+        color: var(--text-secondary);
+    }
+
+    /* Stat Cards */
+    .stat-card-premium {
+        position: relative;
+        border-radius: 20px;
+        padding: 24px;
+        color: white;
+        overflow: hidden;
+        border: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-card-premium:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-card-premium.today { background: var(--card-grad-1); }
+    .stat-card-premium.week { background: var(--card-grad-2); }
+    .stat-card-premium.month { background: var(--card-grad-3); }
+    .stat-card-premium.year { background: var(--card-grad-4); }
+
+    .stat-card-premium .icon-overlay {
+        position: absolute;
+        right: -10px;
+        bottom: -10px;
+        font-size: 5rem;
+        opacity: 0.15;
+        transform: rotate(-15deg);
+    }
+
+    .stat-card-premium .stat-label {
+        font-size: 0.9rem;
+        font-weight: 500;
+        opacity: 0.9;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-card-premium .stat-value {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin: 0;
+    }
+
+    /* Content Cards */
+    .content-card {
+        background: white;
+        border-radius: 20px;
+        border: 1px solid var(--border-color);
+        padding: 24px;
+        height: 100%;
+    }
+
+    .content-card h5 {
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* Method Breakdown */
+    .method-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px;
+        border-radius: 12px;
+        background: var(--bg-light);
+        margin-bottom: 10px;
+        transition: background 0.2s;
+    }
+
+    .method-item:hover {
+        background: #F1F5F9;
+    }
+
+    .method-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .method-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+
+    .bg-cash { background: #D1FAE5; color: #059669; }
+    .bg-card { background: #DBEAFE; color: #2563EB; }
+    .bg-transfer { background: #EDE9FE; color: #7C3AED; }
+    .bg-other { background: #F1F5F9; color: #64748B; }
+
+    .method-name {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 0.95rem;
+    }
+
+    .method-value {
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    /* Chart Container */
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+
+    /* Filter Bar */
+    .filter-bar {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .filter-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    .form-control-custom {
+        border-radius: 10px;
+        border: 1px solid #E2E8F0;
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+    }
+
+    .form-control-custom:focus {
+        border-color: #6366F1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        outline: none;
+    }
+
+    .btn-filter {
+        background: #1E293B;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 0.6rem 1.5rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+
+    .btn-filter:hover {
+        background: #0F172A;
+        transform: translateY(-1px);
+    }
+
+    .btn-reset {
+        color: #64748B;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .btn-reset:hover {
+        color: #1E293B;
+    }
+
+    .stat-card-premium.filtered {
+        background: linear-gradient(135deg, #1E293B 0%, #334155 100%);
+        border: 2px solid #6366F1;
+    }
+</style>
+
+<div class="report-header">
+    <div class="d-flex justify-content-between align-items-center mb-1">
+        <h2>Panel de Ganancias</h2>
+        <div class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
+            <i class="fas fa-coins me-2"></i>Moneda: @ViewBag.NombreMoneda (@simbolo)
+        </div>
+    </div>
+    <p>Resumen detallado de los ingresos financieros de la clínica.</p>
+</div>
+
+<!-- Filtros -->
+<div class="filter-bar">
+    <span class="filter-title"><i class="fas fa-filter me-2"></i>Filtrar por Periodo Personalizado</span>
+    <form method="get" action="@Url.Action("Index", "Reportes")" class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label small fw-bold">Fecha Inicio</label>
+            <input type="date" name="desde" value="@ViewBag.DesdeStr" class="form-control form-control-custom" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small fw-bold">Fecha Fin</label>
+            <input type="date" name="hasta" value="@ViewBag.HastaStr" class="form-control form-control-custom" />
+        </div>
+        <div class="col-md-4 d-flex align-items-center gap-3">
+            <button type="submit" class="btn-filter">
+                <i class="fas fa-search"></i> Consultar Rango
+            </button>
+            @if (ViewBag.FiltroActivo)
+            {
+                <a href="@Url.Action("Index", "Reportes")" class="btn-reset">
+                    <i class="fas fa-times-circle me-1"></i> Limpiar Filtros
+                </a>
+            }
+        </div>
+    </form>
+</div>
+
+<!-- Period Totals -->
+<div class="row g-4 mb-4">
+    @if (ViewBag.FiltroActivo)
+    {
+        <div class="col-md-4">
+            <div class="stat-card-premium filtered">
+                <div class="icon-overlay"><i class="fas fa-filter"></i></div>
+                <div class="stat-label">Total en Rango Seleccionado</div>
+                <h3 class="stat-value">@simbolo@ViewBag.GananciaFiltrada.ToString("N2")</h3>
+                <div class="mt-2 small opacity-75">
+                    @((ViewBag.StartDate as DateTime?)?.ToString("dd MMM yyyy") ?? "Inicio") - 
+                    @((ViewBag.EndDate as DateTime?)?.ToString("dd MMM yyyy") ?? "Fin")
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="stat-card-premium today">
+                <div class="stat-label">Hoy</div>
+                <div class="h4 mb-0">@simbolo@ViewBag.GananciaHoy.ToString("N0")</div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="stat-card-premium week">
+                <div class="stat-label">Semana</div>
+                <div class="h4 mb-0">@simbolo@ViewBag.GananciaSemana.ToString("N0")</div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="stat-card-premium month">
+                <div class="stat-label">Mes</div>
+                <div class="h4 mb-0">@simbolo@ViewBag.GananciaMes.ToString("N0")</div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="stat-card-premium year">
+                <div class="stat-label">Año</div>
+                <div class="h4 mb-0">@simbolo@ViewBag.GananciaAño.ToString("N0")</div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="col-md-3">
+            <div class="stat-card-premium today">
+                <div class="icon-overlay"><i class="fas fa-calendar-day"></i></div>
+                <div class="stat-label">Hoy</div>
+                <h3 class="stat-value">@simbolo@ViewBag.GananciaHoy.ToString("N2")</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card-premium week">
+                <div class="icon-overlay"><i class="fas fa-calendar-week"></i></div>
+                <div class="stat-label">Esta Semana</div>
+                <h3 class="stat-value">@simbolo@ViewBag.GananciaSemana.ToString("N2")</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card-premium month">
+                <div class="icon-overlay"><i class="fas fa-calendar-alt"></i></div>
+                <div class="stat-label">Este Mes</div>
+                <h3 class="stat-value">@simbolo@ViewBag.GananciaMes.ToString("N2")</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card-premium year">
+                <div class="icon-overlay"><i class="fas fa-chart-line"></i></div>
+                <div class="stat-label">Este Año</div>
+                <h3 class="stat-value">@simbolo@ViewBag.GananciaAño.ToString("N2")</h3>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="row g-4">
+    <!-- Trend Chart -->
+    <div class="col-lg-8">
+        <div class="content-card">
+            <h5><i class="fas fa-chart-area text-primary"></i> Tendencia de Ingresos (6 Meses)</h5>
+            <div class="chart-container">
+                <canvas id="tendenciaChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Method Breakdown -->
+    <div class="col-lg-4">
+        <div class="content-card">
+            <h5><i class="fas fa-wallet text-success"></i> Por Método de Pago</h5>
+            <p class="text-muted small mb-4">
+                @(ViewBag.FiltroActivo ? "Distribución del periodo seleccionado." : "Distribución de ingresos del mes actual.")
+            </p>
+            
+            <div class="method-list">
+                @if (ViewBag.DesgloseMetodos != null)
+                {
+                    <div class="mb-4 pb-3 border-bottom">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted fw-bold small">INGRESO TOTAL EN PERIODO:</span>
+                            <span class="h4 mb-0 fw-bold text-primary">@simbolo@ViewBag.TotalPeriodo.ToString("N2")</span>
+                        </div>
+                    </div>
+
+                    foreach (var m in ViewBag.DesgloseMetodos)
+                    {
+                        string iconClass = "fa-money-bill-wave";
+                        string bgClass = "bg-other";
+                        string metodoLabel = m.Metodo;
+
+                        if (m.Metodo == "EFECTIVO") { iconClass = "fa-money-bill-wave"; bgClass = "bg-cash"; }
+                        else if (m.Metodo == "TARJETA") { iconClass = "fa-credit-card"; bgClass = "bg-card"; }
+                        else if (m.Metodo == "TRANSFERENCIA") { iconClass = "fa-exchange-alt"; bgClass = "bg-transfer"; }
+
+                        <div class="method-item">
+                            <div class="method-info">
+                                <div class="method-icon @bgClass">
+                                    <i class="fas @iconClass"></i>
+                                </div>
+                                <span class="method-name">@metodoLabel</span>
+                            </div>
+                            <span class="method-value">@simbolo@m.Total.ToString("N2")</span>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-4 text-muted">
+                        <i class="fas fa-info-circle mb-2 d-block fs-3 opacity-25"></i>
+                        No hay pagos registrados.
+                    </div>
+                }
+            </div>
+        </div>
+</div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const ctx = document.getElementById('tendenciaChart').getContext('2d');
+            
+            const labels = @Html.Raw(Json.Serialize(ViewBag.TendenciaLabels));
+            const data = @Html.Raw(Json.Serialize(ViewBag.TendenciaValores));
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Ingresos Mensuales',
+                        data: data,
+                        borderColor: '#6366F1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#6366F1',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1E293B',
+                            padding: 12,
+                            titleFont: { size: 14, weight: 'bold' },
+                            bodyFont: { size: 13 },
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return '@simbolo' + context.parsed.y.toLocaleString('en-US', {minimumFractionDigits: 2});
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#F1F5F9' },
+                            ticks: {
+                                font: { size: 11 },
+                                callback: function(value) { return '@simbolo' + value.toLocaleString(); }
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 11, weight: '500' } }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+}

@@ -14,7 +14,7 @@
 /* Cabeceras de días (LUN, MAR) */
 .fc .fc-col-header-cell {
     padding: 12px 0;
-    border-color: #E5E7EB !important;
+    border-color: var(--border-color) !important;
     border-top: none !important;
     background: transparent;
 }
@@ -22,7 +22,7 @@
 .fc .fc-col-header-cell-cushion {
     font-size: 0.8rem;
     font-weight: 600;
-    color: #6B7280;
+    color: var(--text-secondary);
     text-transform: uppercase;
     text-decoration: none !important;
     letter-spacing: 0.5px;
@@ -32,7 +32,7 @@
 .fc .fc-daygrid-day-number {
     font-size: 0.9rem;
     font-weight: 600;
-    color: #111827;
+    color: var(--text-primary);
     text-decoration: none !important;
     padding: 8px 12px;
 }
@@ -83,7 +83,7 @@
 
 /* Grillas */
 .fc td, .fc th {
-    border-color: #E5E7EB !important;
+    border-color: var(--border-color) !important;
 }
 
 .fc-scrollgrid {
@@ -96,7 +96,7 @@
 
 .fc .fc-timegrid-slot-label-cushion {
     font-size: 0.75rem;
-    color: #6B7280;
+    color: var(--text-secondary);
     font-weight: 500;
 }
 
@@ -200,14 +200,15 @@
    ========================================== */
 .custom-offcanvas {
     width: 380px !important;
-    border-left: none;
+    border-left: 1px solid var(--border-color) !important;
     box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+    background-color: var(--card-bg) !important;
 }
 
 /* Tarjetas de citas en Offcanvas */
 .today-card {
-    background: #FFF;
-    border: 1px solid #E5E7EB;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 16px;
     margin-bottom: 16px;
@@ -253,12 +254,12 @@
 .today-card-name {
     font-size: 1rem;
     font-weight: 700;
-    color: #111827;
+    color: var(--text-primary);
 }
 
 .today-card-phone {
     font-size: 0.8rem;
-    color: #6B7280;
+    color: var(--text-secondary);
     display: flex;
     align-items: center;
     gap: 6px;
@@ -294,7 +295,7 @@
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background-color: #F3F4F6;
+    background-color: var(--bg-light);
     display: flex;
     align-items: center;
     justify-content: center;

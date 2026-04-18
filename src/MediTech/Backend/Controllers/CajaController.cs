@@ -84,7 +84,7 @@ public class CajaController : Controller
             .Include(c => c.Pagos)
             .Include(c => c.MonedaBase)
             .Include(c => c.Paciente)
-                .ThenInclude(p => p.Persona)
+                .ThenInclude(p => p!.Persona)
             .AsQueryable();
 
         // Filtro por búsqueda de nombre o ID

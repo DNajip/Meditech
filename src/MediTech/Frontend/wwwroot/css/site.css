@@ -38,6 +38,8 @@ body {
 }
 
 .card-premium {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
     border-radius: 15px;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
@@ -186,10 +188,10 @@ body {
     }
 
     .table-responsive-premium tr { 
-        border: 1px solid #E2E8F0; 
+        border: 1px solid var(--border-color); 
         margin-bottom: 15px;
         border-radius: 12px;
-        background: #fff;
+        background: var(--card-bg);
         box-shadow: 0 2px 4px rgba(0,0,0,0.02);
     }
 

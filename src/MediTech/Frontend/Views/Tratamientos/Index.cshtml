@@ -10,10 +10,10 @@
         --trat-danger: #EF4444;
         --trat-warning: #F59E0B;
         --trat-info: #3B82F6;
-        --trat-bg-card: #FFFFFF;
-        --trat-text-main: #1E293B;
-        --trat-text-muted: #64748B;
-        --trat-border: #E2E8F0;
+        --trat-bg-card: var(--card-bg);
+        --trat-text-main: var(--text-primary);
+        --trat-text-muted: var(--text-secondary);
+        --trat-border: var(--border-color);
         --radius-premium: 16px;
     }
 
@@ -53,7 +53,7 @@
 
     /* Control Bar */
     .control-bar {
-        background: white;
+        background: var(--card-bg);
         padding: 16px 24px;
         border-radius: var(--radius-premium);
         border: 1px solid var(--trat-border);
@@ -83,10 +83,11 @@
         border: 1px solid var(--trat-border);
         font-size: 0.9rem;
         transition: all 0.2s;
-        background: #F8FAFC;
+        background: var(--bg-light);
+        color: var(--text-primary);
     }
     .search-wrapper input:focus {
-        background: white;
+        background: var(--card-bg);
         border-color: var(--trat-info);
         box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
         outline: none;
@@ -311,7 +312,7 @@
             <tbody id="tratamientosTableBody">
                 @foreach (var item in Model)
                 {
-                    <tr class="trat-row" data-status="@item.IdEstado" data-name="@item.NombreTratamiento.ToLower()">
+                    <tr class="trat-row" data-status="@item.IdEstado" data-name="@(item.NombreTratamiento?.ToLower() ?? "")">
                         <td>
                             <div class="trat-info-cell">
                                 <div class="trat-icon-box">

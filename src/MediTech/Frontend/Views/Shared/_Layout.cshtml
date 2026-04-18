@@ -1,6 +1,6 @@
 @{
     var userName = User.Identity?.IsAuthenticated == true ? User.Identity.Name : "";
-    var userRole = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
+    var userRole = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value?.ToUpper() ?? "";
     var allowedModules = User.Claims.Where(c => c.Type == "Module").Select(c => c.Value).ToList();
     
     var initials = "";
@@ -22,6 +22,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/meditech-notifications.css" asp-append-version="true" />
+    
+
+
     @await RenderSectionAsync("Styles", required: false)
     <style>
         :root {
@@ -34,7 +37,11 @@
             --text-primary: #1E293B;
             --text-secondary: #64748B;
             --border-color: #E2E8F0;
+            --card-bg: #FFFFFF;
+            --topbar-bg: #FFFFFF;
         }
+
+
 
         * { font-family: 'Inter', sans-serif; }
 
@@ -113,7 +120,7 @@
             left: var(--sidebar-width);
             right: 0;
             height: var(--topbar-height);
-            background: #FFFFFF;
+            background: var(--topbar-bg);
             border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
@@ -215,6 +222,8 @@
             .topbar .d-flex.gap-3 { gap: 0.5rem !important; }
         }
 
+
+
     </style>
 </head>
 <body>
@@ -264,7 +273,9 @@
                 <li><a href="@Url.Action("Index","Caja")" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Caja" ? "active" : "")"><i class="fas fa-cash-register"></i> Caja y Pagos</a></li>
             }
             
-            <li><a href="#"><i class="fas fa-chart-bar"></i> Reportes</a></li>
+            @if (allowedModules.Contains("Reportes") || userRole == "ADMINISTRADOR") {
+                <li><a href="@Url.Action("Index","Reportes")" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Reportes" ? "active" : "")"><i class="fas fa-chart-bar"></i> Reportes</a></li>
+            }
             
             @if (userRole == "ADMINISTRADOR") {
                 <li><a href="@Url.Action("Index","Configuracion")" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Configuracion" ? "active" : "")"><i class="fas fa-cog"></i> Configuración</a></li>
@@ -292,6 +303,7 @@
                  var isAccounting = currentController == "Caja" || 
                                     currentController == "Inventario" || 
                                     currentController == "Tratamientos" || 
+                                    currentController == "Reportes" || 
                                     currentController == "Configuracion";
              }
 
@@ -310,6 +322,8 @@
         </div>
 
         <div class="topbar-user">
+
+
             <div class="user-info">
                 <div class="name">@userName</div>
                 <div class="role">@userRole</div>
@@ -331,6 +345,7 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
     <script src="~/js/meditech-notifications.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 

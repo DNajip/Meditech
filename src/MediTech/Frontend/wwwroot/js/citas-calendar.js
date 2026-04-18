@@ -113,16 +113,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 
                 let html = '';
                 data.forEach(c => {
-                    const isAttended = c.estadoId === 2 || c.estadoId === 3;
-                    const statusClass = isAttended ? 'text-success' : 'text-muted';
-                    const statusIcon = isAttended ? 'bi-check-circle-fill' : 'bi-circle';
+                    let statusBadge = '';
+                    let borderClass = 'border-start-primary'; // Default
+
+                    if (c.estadoId === 2) {
+                        statusBadge = '<span class="badge rounded-pill bg-warning text-dark small" style="font-size: 0.65rem;">EN PROCESO</span>';
+                        borderClass = 'border-start-warning';
+                    } else if (c.estadoId === 3) {
+                        statusBadge = '<span class="badge rounded-pill bg-success text-white small" style="font-size: 0.65rem;">REALIZADA</span>';
+                        borderClass = 'border-start-success';
+                    } else if (c.estadoId === 4) {
+                        statusBadge = '<span class="badge rounded-pill bg-danger text-white small" style="font-size: 0.65rem;">CANCELADA</span>';
+                        borderClass = 'border-start-danger';
+                    }
 
                     html += `
-                        <div class="today-card mb-2 p-3 border rounded-3 bg-white shadow-sm" style="cursor:pointer; transition: transform 0.2s;" 
+                        <div class="today-card mb-2 p-3 border rounded-3 bg-white shadow-sm position-relative ${borderClass}" style="cursor:pointer; transition: transform 0.2s; border-left-width: 4px !important;" 
                              onclick="window.openDetailsFromAgenda(${c.id})"
                              onmouseover="this.style.transform='translateY(-2px)'"
                              onmouseout="this.style.transform='translateY(0)'">
-                            <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex justify-content-between align-items-start">
                                 <div class="flex-grow-1">
                                     <div class="d-flex align-items-center gap-2 mb-1">
                                         <span class="badge bg-light text-primary border" style="font-size: 0.7rem;">
@@ -134,8 +144,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                         <i class="bi bi-heart-pulse me-1"></i>${c.tratamiento}
                                     </div>
                                 </div>
-                                <div class="${statusClass}">
-                                    <i class="bi ${statusIcon} fs-5"></i>
+                                <div class="ms-2">
+                                    ${statusBadge}
                                 </div>
                             </div>
                         </div>`;
@@ -194,28 +204,38 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Action Buttons Logic
         const btnGroupActions = document.getElementById('btnGroupActions');
+        const colCancel = document.getElementById('btnCancelCita')?.parentElement;
+        
         btnGroupActions.innerHTML = ''; 
 
+        // Visibility of Cancel Button (Only for Programada - Estado 1)
+        if (data.estadoId === 1) {
+            colCancel.classList.remove('d-none');
+            btnGroupActions.className = "col-6";
+        } else {
+            colCancel.classList.add('d-none');
+            btnGroupActions.className = "col-12";
+        }
+
         if (data.pacienteId === null) {
-            btnGroupActions.innerHTML = `<button type="button" class="btn text-white w-100 fw-semibold py-2" style="background-color: #4F46E5; border-radius: 8px;" onclick="window.abrirModalConversionJS(${data.id}, ${data.posiblePacienteId})"><i class="bi bi-person-check me-1"></i> Convertir a Paciente</button>`;
+            btnGroupActions.innerHTML = `<button type="button" class="btn text-white w-100 fw-semibold py-2 d-flex align-items-center justify-content-center gap-2" style="background-color: #4F46E5; border-radius: 8px;" onclick="window.abrirModalConversionJS(${data.id}, ${data.posiblePacienteId})"><i class="bi bi-person-check fs-5"></i><span>Convertir a Paciente</span></button>`;
         } else {
             if (data.estadoId === 1) { 
                 btnGroupActions.innerHTML = `
-                    <button type="button" class="btn btn-success text-white w-100 fw-semibold py-2" style="border-radius: 8px;" onclick="window.marcarAtendida(${data.id})"><i class="bi bi-check2-circle me-1"></i> Confirmar Llegada</button>
-                    <a href="/Pacientes/Ficha/${data.pacienteId}" class="btn text-white fw-semibold py-2" style="background-color: #4F46E5; border-radius: 8px;"><i class="bi bi-folder2-open"></i></a>`;
+                    <button type="button" class="btn btn-success text-white w-100 fw-semibold py-2 d-flex align-items-center justify-content-center gap-2" style="border-radius: 8px;" onclick="window.marcarAtendida(${data.id})"><i class="bi bi-check2-circle fs-5"></i><span>Confirmar Llegada</span></button>
+                    <a href="/Pacientes/Ficha/${data.pacienteId}" class="btn text-white fw-semibold py-2 d-flex align-items-center justify-content-center" style="background-color: #4F46E5; border-radius: 8px;"><i class="bi bi-folder2-open"></i></a>`;
             } else if (data.estadoId === 2) { 
-                btnGroupActions.innerHTML = `<button type="button" class="btn text-white w-100 fw-semibold py-2" style="background-color: #4F46E5; border-radius: 8px;" onclick="window.iniciarConsultaJS(${data.id})"><i class="bi bi-stethoscope me-1"></i> Iniciar Consulta</button>`;
+                btnGroupActions.innerHTML = `<button type="button" class="btn text-white w-100 fw-semibold py-2 d-flex align-items-center justify-content-center gap-2" style="background-color: #4F46E5; border-radius: 8px;" onclick="window.iniciarConsultaJS(${data.id})"><i class="bi bi-stethoscope fs-5"></i><span>Iniciar Consulta</span></button>`;
             } else if (data.estadoId === 3) {
-                btnGroupActions.innerHTML = `<span class="badge bg-success w-100 p-3 fs-6 rounded-3"><i class="bi bi-check-circle me-1"></i> Cita Realizada</span>`;
+                btnGroupActions.innerHTML = `<span class="badge bg-success w-100 p-3 fs-6 rounded-3 d-flex align-items-center justify-content-center gap-2"><i class="bi bi-check-circle fs-5"></i><span>Cita Realizada</span></span>`;
             } else {
-                btnGroupActions.innerHTML = `<span class="badge bg-danger w-100 p-3 fs-6 rounded-3">Cita Cancelada</span>`;
+                btnGroupActions.innerHTML = `<span class="badge bg-danger w-100 p-3 fs-6 rounded-3 d-flex align-items-center justify-content-center">Cita Cancelada</span>`;
             }
         }
 
-        // Cancel Button Toggle
+        // Click Handler for Cancel
         const btnCancel = document.getElementById('btnCancelCita');
         if (btnCancel) {
-            btnCancel.style.display = (data.estadoId === 1) ? 'block' : 'none';
             btnCancel.onclick = () => confirmCancelCita(data.id);
         }
 
@@ -394,12 +414,19 @@ document.addEventListener('DOMContentLoaded', function () {
             formData.append('primerApellido', document.getElementById('modalProspectoApellido').value);
             formData.append('telefono', phoneInput.value);
             
+            // Add CSRF Token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            if (token) formData.append('__RequestVerificationToken', token);
+            
             fetch('/Citas/CreateProspectoJson', { 
                 method: 'POST', 
                 body: formData,
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
             })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error(`Server returned ${r.status}`);
+                return r.json();
+            })
             .then(data => {
                 if (data.success) {
                     document.getElementById('PosiblePacienteId').value = data.id;
@@ -409,6 +436,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     btn.disabled = false;
                     btn.innerHTML = 'Agendar Cita';
                 }
+            })
+            .catch(err => {
+                console.error('Error creating prospect:', err);
+                MediToast.error("Error de conexión al crear prospecto.");
+                btn.disabled = false;
+                btn.innerHTML = 'Agendar Cita';
             });
         } else {
             submitAppointmentFinal();
@@ -420,19 +453,29 @@ document.addEventListener('DOMContentLoaded', function () {
         const btn = document.getElementById('btnGuardarCita');
         
         fetch('/Citas/CreateJson', { method: 'POST', body: new FormData(form) })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error(`Server returned ${r.status}`);
+                return r.json();
+            })
             .then(data => {
                 if (data.success) {
                     calendar?.refetchEvents();
                     window.loadTodayAgenda();
                     bootstrap.Modal.getInstance(document.getElementById('modalCrearCita')).hide();
+                    MediToast.success("Cita agendada correctamente.");
                 } else {
                     const alertEl = document.getElementById('modalAlert');
                     if (alertEl) {
                         alertEl.textContent = data.message;
                         alertEl.classList.remove('d-none');
+                    } else {
+                        MediToast.error(data.message);
                     }
                 }
+            })
+            .catch(err => {
+                console.error('Error saving appointment:', err);
+                MediToast.error("Error de conexión al agendar cita.");
             })
             .finally(() => {
                 btn.disabled = false;
@@ -459,7 +502,10 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>';
 
         fetch('/Citas/ConvertirProspecto', { method: 'POST', body: new FormData(form) })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error(`Server returned ${r.status}`);
+                return r.json();
+            })
             .then(data => {
                 if (data.success) {
                     MediToast.success('Conversión finalizada');
@@ -469,6 +515,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else {
                     MediToast.error(data.message);
                 }
+            })
+            .catch(err => {
+                console.error('Error during conversion:', err);
+                MediToast.error("Error de conexión durante la conversión.");
             })
             .finally(() => {
                 btn.disabled = false;
@@ -517,15 +567,24 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>';
 
         fetch('/Citas/GuardarRecepcion', { method: 'POST', body: new FormData(form) })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error(`Server returned ${r.status}`);
+                return r.json();
+            })
             .then(data => {
                 if (data.success) {
                     window.location.href = `/Pacientes/Ficha/${data.idPaciente}?consultaId=${data.idConsulta}&modo=consulta`;
                 } else {
                     MediToast.error(data.error);
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="bi bi-check2-circle me-1"></i> Guardar';
                 }
+            })
+            .catch(err => {
+                console.error('Error saving reception:', err);
+                MediToast.error("Error de conexión al guardar recepción.");
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check2-circle me-1"></i> Guardar';
             });
     };
 
@@ -533,15 +592,29 @@ document.addEventListener('DOMContentLoaded', function () {
         MediConfirm.show({ title: 'Confirmar llegada', message: '¿Marcar paciente como presente?', variant: 'success' })
             .then(confirmed => {
                 if (!confirmed) return;
-                fetch(`/Citas/MarcarAtendida/${idCita}`, { method: 'POST' })
-                    .then(r => r.json())
+                
+                const formData = new FormData();
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                if (token) formData.append('__RequestVerificationToken', token);
+
+                fetch(`/Citas/MarcarAtendida/${idCita}`, { method: 'POST', body: formData })
+                    .then(r => {
+                        if (!r.ok) throw new Error(`Server returned ${r.status}`);
+                        return r.json();
+                    })
                     .then(data => {
                         if (data.success) {
                             MediToast.success("Llegada confirmada.");
                             calendar?.refetchEvents();
                             bootstrap.Modal.getInstance(document.getElementById('modalDetalleCita')).hide();
                             window.loadTodayAgenda();
+                        } else {
+                            MediToast.error(data.message);
                         }
+                    })
+                    .catch(err => {
+                        console.error('Error marking attended:', err);
+                        MediToast.error("Error de conexión al marcar llegada.");
                     });
             });
     };

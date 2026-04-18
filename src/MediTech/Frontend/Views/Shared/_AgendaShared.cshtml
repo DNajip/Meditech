@@ -6,12 +6,12 @@
 <!-- Offcanvas de Agenda de Hoy -->
 <div class="offcanvas offcanvas-end custom-offcanvas" tabindex="-1" id="agendaHoy" aria-labelledby="agendaHoyLabel">
     <div class="offcanvas-header border-bottom py-4 px-4">
-        <h5 class="offcanvas-title fw-bold" id="agendaHoyLabel" style="color: #4F46E5;">
+        <h5 class="offcanvas-title fw-bold" id="agendaHoyLabel" style="color: var(--primary-blue);">
             <i class="bi bi-calendar3 me-2"></i>Agenda de Hoy
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
-    <div class="offcanvas-body p-4" id="agendaHoyList" style="background-color: #F9FAFB;">
+    <div class="offcanvas-body p-4" id="agendaHoyList" style="background-color: var(--bg-light);">
         <!-- Content loaded via JS -->
     </div>
 </div>
@@ -21,12 +21,12 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
             <div class="modal-header border-bottom-0 pb-0">
-                <h5 class="modal-title fw-bold text-dark ms-2">Detalle de Cita</h5>
+                <h5 class="modal-title fw-bold ms-2 text-primary">Detalle de Cita</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body px-4 pt-4 pb-2">
                 <div class="text-center mb-4">
-                    <h3 class="fw-bold text-dark mb-1" id="detailPacienteNombre"></h3>
+                    <h3 class="fw-bold mb-1 text-primary" id="detailPacienteNombre"></h3>
                     <p class="text-muted small mb-0" id="detailPacienteId"></p>
                     <span class="badge bg-warning text-dark mt-2" id="detailProspectBadge" style="display:none;">PROSPECTO</span>
                 </div>
@@ -36,21 +36,21 @@
                         <div class="icon-box me-3"><i class="bi bi-clock text-secondary"></i></div>
                         <div>
                             <p class="mb-0 text-muted small">Horario</p>
-                            <p class="mb-0 fw-semibold text-dark" id="detailHorario"></p>
+                            <p class="mb-0 fw-semibold" id="detailHorario" style="color: var(--text-primary);"></p>
                         </div>
                     </div>
                     <div class="d-flex align-items-center">
                         <div class="icon-box me-3"><i class="bi bi-calendar text-secondary"></i></div>
                         <div>
                             <p class="mb-0 text-muted small">Fecha</p>
-                            <p class="mb-0 fw-semibold text-dark" id="detailFecha"></p>
+                            <p class="mb-0 fw-semibold" id="detailFecha" style="color: var(--text-primary);"></p>
                         </div>
                     </div>
                     <div class="d-flex align-items-center">
                         <div class="icon-box me-3"><i class="bi bi-telephone text-secondary"></i></div>
                         <div>
                             <p class="mb-0 text-muted small">Teléfono</p>
-                            <p class="mb-0 fw-semibold text-dark" id="detailTelefono"></p>
+                            <p class="mb-0 fw-semibold" id="detailTelefono" style="color: var(--text-primary);"></p>
                         </div>
                     </div>
                     <div class="d-flex align-items-center">
@@ -71,12 +71,16 @@
                 </div>
             </div>
 
-            <div class="modal-footer border-top-0 px-4 pb-4 pt-2 d-flex gap-2">
-                <button type="button" class="btn btn-outline-danger w-100 fw-semibold py-2" id="btnCancelCita" style="border-radius: 8px;">
-                    Cancelar Cita
-                </button>
-                <div class="d-flex w-100 gap-2" id="btnGroupActions">
-                    <!-- Dynamic buttons based on status injected by JS -->
+            <div class="modal-footer border-top-0 px-4 pb-4 pt-2">
+                <div class="row w-100 g-2">
+                    <div class="col-6">
+                        <button type="button" class="btn btn-outline-danger w-100 fw-semibold py-2 d-flex align-items-center justify-content-center" id="btnCancelCita" style="border-radius: 8px;">
+                            Cancelar Cita
+                        </button>
+                    </div>
+                    <div class="col-6" id="btnGroupActions">
+                        <!-- Dynamic buttons based on status injected by JS -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -87,8 +91,8 @@
 <div class="modal fade" id="modalCrearCita" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
-            <div class="modal-header bg-light border-bottom-0 pb-0" style="border-radius: 16px 16px 0 0;">
-                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-calendar-plus me-2 text-primary"></i>Agendar Cita</h5>
+            <div class="modal-header bg-soft-primary border-bottom-0 pb-0" style="border-radius: 16px 16px 0 0;">
+                <h5 class="modal-title fw-bold text-primary"><i class="bi bi-calendar-plus me-2 text-primary"></i>Agendar Cita</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
@@ -104,7 +108,7 @@
 
                     <!-- Section: Patient Type Selection -->
                     <div class="mb-2">
-                        <div class="btn-group w-100 p-1 bg-white border" style="border-radius: 10px;">
+                        <div class="btn-group w-100 p-1 border" style="border-radius: 10px; background: var(--bg-light);">
                             <input type="radio" class="btn-check" name="tipoPaciente" value="paciente" id="tipoPacienteExistente" checked onchange="toggleFields('paciente')">
                             <label class="btn btn-outline-primary border-0 d-flex align-items-center justify-content-center gap-1" for="tipoPacienteExistente" style="border-radius: 8px; font-weight: 600; font-size: 0.85rem; min-height: auto;">
                                 <i class="bi bi-person-check fs-6"></i> Paciente
@@ -277,7 +281,7 @@
         <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.2);">
             <div class="modal-header border-0 px-4 pt-4 pb-0">
                 <div>
-                    <h4 class="fw-bold mb-1" style="color: #1e293b;"><i class="bi bi-clipboard2-pulse me-2 text-primary"></i>Recepción del Paciente</h4>
+                    <h4 class="fw-bold mb-1" style="color: var(--text-primary);"><i class="bi bi-clipboard2-pulse me-2 text-primary"></i>Recepción del Paciente</h4>
                     <div class="d-flex align-items-center gap-3 text-secondary small">
                         <span><i class="bi bi-person-fill me-1"></i> <span id="recepcionPacienteNombre">—</span></span>
                         <span><i class="bi bi-calendar-event me-1"></i> <span id="recepcionFechaHora">—</span></span>
@@ -300,11 +304,10 @@
                     <input type="hidden" id="recIdEstado" name="IdEstado" />
                     <input type="hidden" id="recIdConsulta" name="IdConsulta" />
 
-                    <!-- SECCIÓN 1: SIGNOS VITALES -->
-                    <div class="p-3 mb-3" style="background:#f8fafc; border-radius:14px; border:1px solid #e2e8f0;">
+                    <div class="p-3 mb-3 border" style="background: var(--bg-light); border-radius:14px; border-color: var(--border-color) !important;">
                         <div class="d-flex align-items-center gap-2 mb-3">
                             <div class="p-2 bg-danger bg-opacity-10 text-danger rounded-3"><i class="bi bi-activity"></i></div>
-                            <span class="fw-bold text-dark">SIGNOS VITALES</span>
+                            <span class="fw-bold" style="color: var(--text-primary);">SIGNOS VITALES</span>
                         </div>
                         <div class="row g-3">
                             <div class="col-md-4 col-6">
@@ -325,11 +328,11 @@
                             </div>
                             <div class="col-md-4 col-6">
                                 <label class="form-label small fw-bold text-secondary mb-1">Peso (lbs)</label>
-                                <input name="signos.Peso" id="recPeso" type="number" step="0.01" class="form-control bg-white" placeholder="lbs" style="border-radius:10px;border:1px solid #e2e8f0;" />
+                                <input name="signos.Peso" id="recPeso" type="number" step="0.01" class="form-control bg-white" placeholder="lbs" style="border-radius:10px;border:1px solid #e2e8f0;" oninput="window.calcularIMCRecepcion()" />
                             </div>
                             <div class="col-md-4 col-6">
                                 <label class="form-label small fw-bold text-secondary mb-1">Altura (cm)</label>
-                                <input name="signos.Altura" id="recAltura" type="number" step="0.1" class="form-control bg-white" placeholder="cm" style="border-radius:10px;border:1px solid #e2e8f0;" />
+                                <input name="signos.Altura" id="recAltura" type="number" step="0.1" class="form-control bg-white" placeholder="cm" style="border-radius:10px;border:1px solid #e2e8f0;" oninput="window.calcularIMCRecepcion()" />
                             </div>
                         </div>
                         <!-- IMC Display -->
