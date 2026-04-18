@@ -217,21 +217,30 @@ document.addEventListener('DOMContentLoaded', function () {
             btnGroupActions.className = "col-12";
         }
 
-        if (data.pacienteId === null) {
-            btnGroupActions.innerHTML = `<button type="button" class="btn text-white w-100 fw-semibold py-2 d-flex align-items-center justify-content-center gap-2" style="background-color: #4F46E5; border-radius: 8px;" onclick="window.abrirModalConversionJS(${data.id}, ${data.posiblePacienteId})"><i class="bi bi-person-check fs-5"></i><span>Convertir a Paciente</span></button>`;
-        } else {
-            if (data.estadoId === 1) { 
-                btnGroupActions.innerHTML = `
-                    <button type="button" class="btn btn-success text-white w-100 fw-semibold py-2 d-flex align-items-center justify-content-center gap-2" style="border-radius: 8px;" onclick="window.marcarAtendida(${data.id})"><i class="bi bi-check2-circle fs-5"></i><span>Confirmar Llegada</span></button>
-                    <a href="/Pacientes/Ficha/${data.pacienteId}" class="btn text-white fw-semibold py-2 d-flex align-items-center justify-content-center" style="background-color: #4F46E5; border-radius: 8px;"><i class="bi bi-folder2-open"></i></a>`;
-            } else if (data.estadoId === 2) { 
-                btnGroupActions.innerHTML = `<button type="button" class="btn text-white w-100 fw-semibold py-2 d-flex align-items-center justify-content-center gap-2" style="background-color: #4F46E5; border-radius: 8px;" onclick="window.iniciarConsultaJS(${data.id})"><i class="bi bi-stethoscope fs-5"></i><span>Iniciar Consulta</span></button>`;
-            } else if (data.estadoId === 3) {
-                btnGroupActions.innerHTML = `<span class="badge bg-success w-100 p-3 fs-6 rounded-3 d-flex align-items-center justify-content-center gap-2"><i class="bi bi-check-circle fs-5"></i><span>Cita Realizada</span></span>`;
-            } else {
-                btnGroupActions.innerHTML = `<span class="badge bg-danger w-100 p-3 fs-6 rounded-3 d-flex align-items-center justify-content-center">Cita Cancelada</span>`;
-            }
+        let actionHtml = '';
+
+        // Status Badge (only if not Programada)
+        if (data.estadoId === 2) {
+            actionHtml += `<button type="button" class="btn text-white w-100 fw-semibold py-2 d-flex align-items-center justify-content-center gap-2 mb-2" style="background-color: #4F46E5; border-radius: 8px;" onclick="window.iniciarConsultaJS(${data.id})"><i class="bi bi-stethoscope fs-5"></i><span>Iniciar Consulta</span></button>`;
+        } else if (data.estadoId === 3) {
+            actionHtml += `<span class="badge bg-success w-100 p-3 fs-6 rounded-3 d-flex align-items-center justify-content-center gap-2 mb-2"><i class="bi bi-check-circle fs-5"></i><span>Cita Realizada</span></span>`;
+        } else if (data.estadoId === 4) {
+            actionHtml += `<span class="badge bg-danger w-100 p-3 fs-6 rounded-3 d-flex align-items-center justify-content-center gap-2 mb-2"><i class="bi bi-x-circle fs-5"></i><span>Cita Cancelada</span></span>`;
         }
+
+        // Action Button (Arrival or Conversion)
+        if (data.estadoId === 1 && data.pacienteId !== null) {
+            actionHtml = `
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-success text-white w-100 fw-semibold py-2 d-flex align-items-center justify-content-center gap-2" style="border-radius: 8px;" onclick="window.marcarAtendida(${data.id})"><i class="bi bi-check2-circle fs-5"></i><span>Confirmar Llegada</span></button>
+                    <a href="/Pacientes/Ficha/${data.pacienteId}" class="btn text-white fw-semibold py-2 d-flex align-items-center justify-content-center px-3" style="background-color: #4F46E5; border-radius: 8px;"><i class="bi bi-folder2-open"></i></a>
+                </div>`;
+        } else if (data.pacienteId === null) {
+            // Prospects always keep the conversion button
+            actionHtml += `<button type="button" class="btn text-white w-100 fw-semibold py-2 d-flex align-items-center justify-content-center gap-2" style="background-color: #4F46E5; border-radius: 8px;" onclick="window.abrirModalConversionJS(${data.id}, ${data.posiblePacienteId})"><i class="bi bi-person-check fs-5"></i><span>Convertir a Paciente</span></button>`;
+        }
+
+        btnGroupActions.innerHTML = actionHtml;
 
         // Click Handler for Cancel
         const btnCancel = document.getElementById('btnCancelCita');

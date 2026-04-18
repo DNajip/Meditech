@@ -33,7 +33,7 @@ public class CajaController : Controller
                 .ToListAsync();
 
             var totalFacturado = cuentas.Sum(c => c.TotalFinal ?? 0m);
-            var totalPagado = cuentas.SelectMany(c => c.Pagos).Sum(p => p.MontoBase ?? 0m);
+            var totalPagado = cuentas.SelectMany(c => c.Pagos).Sum(p => (p.MontoBase ?? 0m) - (p.Vuelto ?? 0m));
             var saldoPendiente = totalFacturado - totalPagado;
 
             var result = new
@@ -53,7 +53,7 @@ public class CajaController : Controller
                     descuento = c.Descuento,
                     totalFinal = c.TotalFinal,
                     simbolo = c.MonedaBase?.Simbolo ?? "$",
-                    estado = (c.Pagos.Sum(p => p.MontoBase ?? 0m) >= (c.TotalFinal ?? 0m) - 0.05m && (c.TotalFinal ?? 0m) > 0) ? "PAGADA" : "PENDIENTE",
+                    estado = (c.Pagos.Sum(p => (p.MontoBase ?? 0m) - (p.Vuelto ?? 0m)) >= (c.TotalFinal ?? 0m) - 0.05m && (c.TotalFinal ?? 0m) > 0) ? "PAGADA" : "PENDIENTE",
                     detalles = c.Detalles.Select(d => new
                     {
                         tipo = d.TipoItem,
@@ -106,7 +106,7 @@ public class CajaController : Controller
 
         ViewBag.IngresosHoy = await _context.Pagos
             .Where(p => p.FechaPago.Date == hoy)
-            .SumAsync(p => p.MontoBase ?? 0);
+            .SumAsync(p => (p.MontoBase ?? 0) - (p.Vuelto ?? 0));
 
         ViewBag.CuentasHoy = await _context.Cuentas
             .CountAsync(c => c.FechaCreacion.Date == hoy);
@@ -115,7 +115,7 @@ public class CajaController : Controller
             .CountAsync(c => (c.TotalFinal ?? 0) > c.Pagos.Sum(p => p.MontoBase ?? 0) && (c.TotalFinal ?? 0) > 0);
 
         ViewBag.TotalRecaudado = await _context.Pagos
-            .SumAsync(p => p.MontoBase ?? 0);
+            .SumAsync(p => (p.MontoBase ?? 0) - (p.Vuelto ?? 0));
 
         // Filtro por estado
         if (!string.IsNullOrEmpty(estado))
@@ -275,6 +275,13 @@ public class CajaController : Controller
         public decimal[] PrecioUnitario { get; set; } = Array.Empty<decimal>();
     }
 
+    public class PagoInputModel
+    {
+        public int IdMoneda { get; set; }
+        public decimal Monto { get; set; }
+        public decimal MontoRecibido { get; set; }
+    }
+
     // POST: Caja/Create (AJAX)
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -402,11 +409,12 @@ public class CajaController : Controller
         return View(cuenta);
     }
 
-    // POST: Caja/RegistrarPago (AJAX)
+    // POST: Caja/RegistrarPago (AJAX) - Soporte Multimoneda
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> RegistrarPago(int idCuenta, decimal monto, int idMoneda, string metodoPago, decimal montoRecibido = 0)
+    public async Task<IActionResult> RegistrarPago(int idCuenta, string metodoPago, List<PagoInputModel> pagos)
     {
+        using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
             var cuenta = await _context.Cuentas
@@ -416,87 +424,89 @@ public class CajaController : Controller
 
             if (cuenta == null) return Json(new { success = false, message = "Cuenta no encontrada" });
 
-            var config = await _context.ConfiguracionesMoneda.Include(c => c.MonedaBase).FirstOrDefaultAsync();
-            var monedaPago = await _context.Monedas.FindAsync(idMoneda);
+            if (pagos == null || pagos.Count == 0)
+                return Json(new { success = false, message = "No se recibieron detalles de pago." });
+
+            var config = await _context.ConfiguracionesMoneda.Include(p => p.MonedaBase).FirstOrDefaultAsync();
             var currentTasa = await _context.TasasCambio.FirstOrDefaultAsync(t => t.Activo);
-
-            if (config == null || monedaPago == null || currentTasa == null)
-            {
+            
+            if (config == null || currentTasa == null)
                 return Json(new { success = false, message = "Error de configuración de moneda o tasa activa." });
-            }
 
-            string codigoBase = config.MonedaBase?.Codigo ?? "NIO";
-            string codigoPago = monedaPago.Codigo ?? "NIO";
             decimal tasa = currentTasa.Valor;
+            string codigoBase = config.MonedaBase?.Codigo ?? "NIO";
+            
+            decimal totalMontoBase = 0;
+            decimal totalRecibidoBase = 0;
+            var nuevosPagos = new List<Pago>();
 
-            // Lógica Inteligente de Conversión (Sincronizada con Frontend)
-            decimal montoBase = monto;
-            decimal montoRecibidoEnBase = montoRecibido;
-
-            if (codigoBase != codigoPago)
+            foreach (var item in pagos)
             {
-                if (codigoBase == "NIO" && codigoPago == "USD")
+                var moneda = await _context.Monedas.FindAsync(item.IdMoneda);
+                if (moneda == null) continue;
+
+                decimal mBase = item.Monto;
+                decimal rBase = item.MontoRecibido;
+
+                // Lógica de conversión a moneda Base
+                if (moneda.Codigo != codigoBase)
                 {
-                    montoBase = monto * tasa;
-                    montoRecibidoEnBase = montoRecibido * tasa;
-                }
-                else if (codigoBase == "USD" && codigoPago == "NIO")
-                {
-                    montoBase = monto / tasa;
-                    montoRecibidoEnBase = montoRecibido / tasa;
-                }
-                else
-                {
-                    if (tasa > 1)
+                    if (codigoBase == "NIO" && moneda.Codigo == "USD")
                     {
-                        montoBase = monto * tasa;
-                        montoRecibidoEnBase = montoRecibido * tasa;
+                        mBase = item.Monto * tasa;
+                        rBase = item.MontoRecibido * tasa;
                     }
-                    else
+                    else if (codigoBase == "USD" && moneda.Codigo == "NIO")
                     {
-                        montoBase = monto / tasa;
-                        montoRecibidoEnBase = montoRecibido / tasa;
+                        mBase = item.Monto / tasa;
+                        rBase = item.MontoRecibido / tasa;
                     }
                 }
+
+                totalMontoBase += mBase;
+                totalRecibidoBase += rBase;
+
+                nuevosPagos.Add(new Pago
+                {
+                    IdCuenta = idCuenta,
+                    IdMoneda = item.IdMoneda,
+                    Monto = item.Monto,
+                    MontoBase = mBase,
+                    MontoRecibido = item.MontoRecibido,
+                    MetodoPago = metodoPago,
+                    TasaCambioAplicada = tasa,
+                    FechaPago = DateTime.Now,
+                    Vuelto = 0 // El vuelto se calcula globalmente al final
+                });
             }
 
-            var pagosList = cuenta.Pagos ?? new List<Pago>();
-            var totalPagadoPrevio = pagosList.Sum(p => p.MontoBase ?? 0);
+            // Validación de Saldo
+            var totalPagadoPrevio = cuenta.Pagos?.Sum(p => p.MontoBase ?? 0) ?? 0;
             var saldoPendienteBase = (cuenta.TotalFinal ?? 0) - totalPagadoPrevio;
 
-            // Validación con tolerancia de 0.05 para redondeo
-            if (montoBase < saldoPendienteBase - 0.05m)
+            if (totalMontoBase < saldoPendienteBase - 0.05m)
             {
-                return Json(new { success = false, message = $"Monto insuficiente. Eq: {montoBase:N2}, Saldo: {saldoPendienteBase:N2}" });
+                return Json(new { success = false, message = $"El monto total ({totalMontoBase:N2}) es insuficiente para cubrir el saldo ({saldoPendienteBase:N2})." });
             }
 
-            // El vuelto es lo que sobra del recibido en moneda base
-            decimal vuelto = 0;
-            if (metodoPago == "EFECTIVO" && montoRecibidoEnBase > montoBase)
+            // Calcular vuelto global si es efectivo
+            decimal vueltoTotalBase = 0;
+            if (metodoPago == "EFECTIVO" && totalRecibidoBase > totalMontoBase)
             {
-                vuelto = montoRecibidoEnBase - montoBase;
+                vueltoTotalBase = totalRecibidoBase - totalMontoBase;
+                // Atribuimos el vuelto al primer pago de la lista por registro contable
+                if (nuevosPagos.Count > 0) nuevosPagos[0].Vuelto = vueltoTotalBase;
             }
 
-            var pago = new Pago
-            {
-                IdCuenta = idCuenta,
-                Monto = monto,
-                MontoBase = montoBase,
-                MontoRecibido = montoRecibido,
-                Vuelto = vuelto,
-                IdMoneda = idMoneda,
-                MetodoPago = metodoPago,
-                TasaCambioAplicada = tasa,
-                FechaPago = DateTime.Now
-            };
-
-            _context.Pagos.Add(pago);
+            _context.Pagos.AddRange(nuevosPagos);
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
-            return Json(new { success = true, message = "Pago registrado exitosamente.", vuelto = vuelto });
+            return Json(new { success = true, message = "Pago(s) registrado(s) correctamente.", vuelto = vueltoTotalBase });
         }
         catch (Exception ex)
         {
+            await transaction.RollbackAsync();
             return Json(new { success = false, message = "Error interno: " + ex.Message });
         }
     }

@@ -211,8 +211,10 @@
 
 <div id="currency-metadata" 
      data-base-id="@ViewBag.IdMonedaBase" 
+     data-base-codigo="@ViewBag.MonedaBase?.Codigo"
      data-tasa="@ViewBag.TasaCambio"
      data-saldo="@ViewBag.SaldoPendiente"
+     data-cuenta-codigo="@Model.MonedaBase?.Codigo"
      data-tasa-origen="@ViewBag.TasaOrigenId"
      data-tasa-destino="@ViewBag.TasaDestinoId"
      style="display:none;"></div>
@@ -239,62 +241,67 @@
                         <h2 class="fw-bold text-danger mb-0 font-monospace">@Model.MonedaBase?.Simbolo @saldoPendiente.ToString("N2")</h2>
                     </div>
 
-                    <!-- Selector de Moneda (Iconos) -->
-                    <div class="text-center mb-4">
-                        <label class="form-label fw-bold small text-secondary d-block mb-2">Moneda del Pago</label>
-                        <div class="btn-group w-100 shadow-sm" role="group">
-                            @if (monedas != null)
-                            {
-                                foreach (var m in monedas)
-                                {
-                                    <input type="radio" class="btn-check" name="currency_toggle" id="btn_cur_@m.IdMoneda" 
-                                           value="@m.IdMoneda" data-simbolo="@m.Simbolo" data-codigo="@m.Codigo"
-                                           data-base="@(m.IdMoneda == Model.IdMonedaBase ? "true" : "false")"
-                                           @(m.IdMoneda == Model.IdMonedaBase ? "checked" : "")>
-                                    <label class="btn btn-outline-primary py-2 fw-bold" for="btn_cur_@m.IdMoneda">
-                                        <i class="fas @(m.Codigo == "NIO" ? "fa-money-bill-alt" : "fa-dollar-sign") me-2"></i>@m.Codigo
-                                    </label>
-                                }
-                            }
-                        </div>
-                    </div>
-                    
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold small text-secondary">Monto a Pagar (<span class="cur-code-label">@Model.MonedaBase?.Codigo</span>)</label>
+                    <div id="multiCurrencyContainer">
+                        <!-- Entrada NIO -->
+                        <div class="p-3 mb-3" style="background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="fw-bold small text-secondary"><i class="fas fa-money-bill-alt me-1 text-primary"></i> Pagar en Córdoba (NIO)</label>
+                                <span class="badge bg-soft-primary text-primary" style="font-size: 0.65rem;">MONEDA BASE</span>
+                            </div>
                             <div class="input-group">
-                                <span class="input-group-text bg-light border-0"><span class="cur-sym-label">@Model.MonedaBase?.Simbolo</span></span>
-                                <input type="text" id="displayMontoPagar" class="form-control bg-light border-0 fw-bold" readonly>
+                                <span class="input-group-text bg-white border-0 shadow-sm" style="border-radius: 8px 0 0 8px;">C$</span>
+                                <input type="number" id="inputMontoNIO" class="form-control border-0 shadow-sm fw-bold" step="0.01" placeholder="0.00" style="border-radius: 0 8px 8px 0;">
+                            </div>
+                            <div class="mt-2 text-end">
+                                <span class="text-muted" style="font-size: 0.75rem;">Vale: <span id="nioEquivLabel" class="fw-bold text-primary">--</span></span>
                             </div>
                         </div>
-                        <div class="col-md-6">
+
+                        <!-- Entrada USD -->
+                        <div class="p-3 mb-4" style="background: #f0fdf4; border-radius: 12px; border: 1px solid #dcfce7;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="fw-bold small text-success"><i class="fas fa-dollar-sign me-1"></i> Pagar en Dólares (USD)</label>
+                                <span class="badge bg-soft-success text-success" id="conversionFactorLabel" style="font-size: 0.65rem;">Tasa: --.--</span>
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-0 shadow-sm" style="border-radius: 8px 0 0 8px;">$</span>
+                                <input type="number" id="inputMontoUSD" class="form-control border-0 shadow-sm fw-bold" step="0.01" placeholder="0.00" style="border-radius: 0 8px 8px 0;">
+                            </div>
+                            <div class="mt-2 text-end">
+                                <span class="text-muted" style="font-size: 0.75rem;">Vale: <span id="usdEquivLabel" class="fw-bold text-success">C$ 0.00</span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-4">
+                        <div class="col-8">
                             <label class="form-label fw-bold small text-secondary">Vía de Pago <span class="text-danger">*</span></label>
-                            <select name="metodoPago" id="selectMetodoPago" class="form-select border-0 bg-light fw-semibold" required>
+                            <select name="metodoPago" id="selectMetodoPago" class="form-select border-0 bg-light fw-semibold" style="border-radius: 8px;" required>
                                 <option value="EFECTIVO">💵 Efectivo</option>
                                 <option value="TARJETA">💳 Tarjeta</option>
                                 <option value="TRANSFERENCIA">🏦 Transferencia</option>
                             </select>
                         </div>
+                        <div class="col-4">
+                            <label class="form-label fw-bold small text-secondary">Total Cubierto</label>
+                            <div class="text-end fw-bold text-primary py-1" id="totalCubiertoLabel" style="font-size: 1.1rem;">C$ 0.00</div>
+                        </div>
                     </div>
 
-                    <!-- Sección Efectivo (Recibido y Vuelto) -->
-                    <div id="sectionEfectivo" class="mt-4">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold small text-secondary">Monto Recibido (<span class="cur-code-label">@Model.MonedaBase?.Codigo</span>)</label>
-                            <div class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden">
-                                <span class="input-group-text border-0 bg-soft-primary text-primary"><span class="cur-sym-label">@Model.MonedaBase?.Simbolo</span></span>
-                                <input type="number" id="inputMontoRecibido" class="form-control border-0 bg-light fw-bold" step="0.01" placeholder="0.00">
-                            </div>
+                    <!-- Sección Resumen y Cambio -->
+                    <div id="sectionResumen" class="mt-2 text-start">
+                        <div id="alertRestante" class="p-2 mb-3 bg-soft-info rounded-3 text-center border border-info border-opacity-10">
+                            <span class="text-info-emphasis fw-semibold" style="font-size: 0.8rem;">Restante: <span id="restanteValor">C$ @saldoPendiente.ToString("N2")</span></span>
                         </div>
 
                         <div id="displayVuelto" class="p-3 bg-soft-success rounded-4 border border-success border-opacity-10 text-center" style="display:none;">
-                            <span class="text-success-emphasis small fw-bold text-uppercase d-block mb-1">Vuelto a Entregar (@Model.MonedaBase?.Codigo)</span>
-                            <h3 class="fw-bold text-success mb-0 font-monospace">@Model.MonedaBase?.Simbolo <span id="vueltoValor">0.00</span></h3>
+                            <span class="text-success-emphasis small fw-bold text-uppercase d-block mb-1">Vuelto Estimado (NIO)</span>
+                            <h3 class="fw-bold text-success mb-0 font-monospace">C$ <span id="vueltoValor">0.00</span></h3>
                         </div>
                     </div>
 
                     <div id="pagoInsuficiente" class="alert alert-danger mt-3 py-2 px-3 small border-0 shadow-sm" style="display:none;">
-                        <i class="fas fa-exclamation-circle me-1"></i> El monto recibido no cubre el total.
+                        <i class="fas fa-exclamation-circle me-1"></i> El monto total no cubre el saldo de la cuenta.
                     </div>
                 </div>
                 <div class="modal-footer border-0 p-4 pt-0">
@@ -332,170 +339,162 @@
 @section Scripts {
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Elementos UI
+        // UI Elements
         const formPago = document.getElementById('formRegistrarPago');
-        const radioMonedas = document.querySelectorAll('input[name="currency_toggle"]');
-        const inputRecibido = document.getElementById('inputMontoRecibido');
+        const inputNIO = document.getElementById('inputMontoNIO');
+        const inputUSD = document.getElementById('inputMontoUSD');
+        const factorLabel = document.getElementById('conversionFactorLabel');
+        const nioEquivLabel = document.getElementById('nioEquivLabel'); // Nueva etiqueta
+        const usdEquivLabel = document.getElementById('usdEquivLabel');
+        const totalCubiertoLabel = document.getElementById('totalCubiertoLabel');
+        const restanteValor = document.getElementById('restanteValor');
+        const alertRestante = document.getElementById('alertRestante');
+        
         const selectMetodo = document.getElementById('selectMetodoPago');
-        const displayPagar = document.getElementById('displayMontoPagar');
         const displayVuelto = document.getElementById('displayVuelto');
         const vueltoValor = document.getElementById('vueltoValor');
-        const sectionEfectivo = document.getElementById('sectionEfectivo');
         const alertInsuficiente = document.getElementById('pagoInsuficiente');
         const btnSubmit = document.getElementById('btnSubmitPago');
         
-        // Elementos Hidden (Data)
-        const hiddenIdMoneda = document.getElementById('hiddenIdMoneda');
-        const hiddenMontoPagar = document.getElementById('hiddenMontoPagar');
+        // Metadata
         const meta = document.getElementById('currency-metadata');
-        
-        // Etiquetas dinámicas
-        const codeLabels = document.querySelectorAll('.cur-code-label');
-        const symLabels = document.querySelectorAll('.cur-sym-label');
-
         if (!meta) return;
 
-        // Datos del servidor
-        const idMonedaBase = parseInt(meta.dataset.baseId) || 0;
-        const saldoPendienteBase = parseFloat(meta.dataset.saldo.replace(',', '.')) || 0;
+        const saldoPendienteOriginal = parseFloat(meta.dataset.saldo.replace(',', '.')) || 0;
         const tasa = parseFloat(meta.dataset.tasa.replace(',', '.')) || 1;
-        const idTasaOrigen = parseInt(meta.dataset.tasaOrigen) || 0;
-        const idTasaDestino = parseInt(meta.dataset.tasaDestino) || 0;
-        const simboloBase = "@Model.MonedaBase?.Simbolo";
-        const codigoBase = "@Model.MonedaBase?.Codigo";
+        const codigoBase = meta.dataset.baseCodigo;
+        const codigoCuenta = meta.dataset.cuentaCodigo;
+        
+        const idNIO = @monedas.FirstOrDefault(m => m.Codigo == "NIO")?.IdMoneda ?? 1;
+        const idUSD = @monedas.FirstOrDefault(m => m.Codigo == "USD")?.IdMoneda ?? 2;
+
+        // Normalizar saldo a la moneda BASE (NIO) para el cálculo del total cubierto
+        let saldoPendienteBase = saldoPendienteOriginal;
+        if (codigoCuenta === "USD" && codigoBase === "NIO") {
+            saldoPendienteBase = saldoPendienteOriginal * tasa;
+        }
+
+        if (factorLabel) factorLabel.textContent = `Tasa: ${tasa.toFixed(2)}`;
 
         function updateCalculations() {
-            // 1. Obtener moneda seleccionada
-            const selectedRadio = document.querySelector('input[name="currency_toggle"]:checked');
-            if (!selectedRadio) return;
+            const montoNio = parseFloat(inputNIO.value) || 0;
+            const montoUsd = parseFloat(inputUSD.value) || 0;
 
-            const idMonedaPago = parseInt(selectedRadio.value);
-            const simboloPago = selectedRadio.dataset.simbolo;
-            const codigoPago = selectedRadio.dataset.codigo;
-            const isBase = selectedRadio.dataset.base === "true";
+            let totalCubierto = 0;
+            let nioEqBase = 0;
+            let usdEqBase = 0;
 
-            // 2. Calcular cuánto se debe pagar en la moneda seleccionada
-            let montoPagarEnDivisa = saldoPendienteBase;
-            
-            // Lógica basada en Códigos (Infalible)
-            if (!isBase) {
-                if (codigoBase === "NIO" && codigoPago === "USD") {
-                    // NIO -> USD: Dividir entre tasa (180 / 36.60 = 4.92)
-                    montoPagarEnDivisa = saldoPendienteBase / tasa;
-                } else if (codigoBase === "USD" && codigoPago === "NIO") {
-                    // USD -> NIO: Multiplicar por tasa (10 * 36.60 = 366)
-                    montoPagarEnDivisa = saldoPendienteBase * tasa;
-                } else {
-                    // Fallback genérico basado en valor de la tasa
-                    if (tasa > 1) {
-                        // Asumimos tasa tipo USD->NIO (ej. 36.60)
-                        // Para llegar a la moneda de "valor mayor" (USD), dividimos.
-                        montoPagarEnDivisa = saldoPendienteBase / tasa;
-                    } else {
-                        montoPagarEnDivisa = saldoPendienteBase * tasa;
-                    }
-                }
+            // Lógica Cruzada para Etiquetas
+            const nioEnUsd = montoNio / tasa;
+            const usdEnNio = montoUsd * tasa;
+
+            if (codigoBase === "NIO") {
+                // Base NIO
+                nioEqBase = montoNio;
+                usdEqBase = montoUsd * tasa;
+                totalCubierto = nioEqBase + usdEqBase;
+                
+                if (nioEquivLabel) nioEquivLabel.textContent = `$ ${nioEnUsd.toFixed(2)}`;
+                if (usdEquivLabel) usdEquivLabel.textContent = `C$ ${usdEnNio.toFixed(2)}`;
+            } else {
+                // Base USD
+                usdEqBase = montoUsd;
+                nioEqBase = montoNio / tasa;
+                totalCubierto = usdEqBase + nioEqBase;
+
+                if (nioEquivLabel) nioEquivLabel.textContent = `$ ${nioEnUsd.toFixed(2)}`;
+                if (usdEquivLabel) usdEquivLabel.textContent = `C$ ${usdEnNio.toFixed(2)}`;
             }
 
-            // Actualizar inputs hidden para el servidor
-            hiddenIdMoneda.value = idMonedaPago;
-            hiddenMontoPagar.value = montoPagarEnDivisa.toFixed(4);
+            const sym = codigoBase === "NIO" ? "C$" : "$";
+            if (totalCubiertoLabel) totalCubiertoLabel.textContent = `${sym} ${totalCubierto.toFixed(2)}`;
 
-            // Actualizar etiquetas UI
-            displayPagar.value = montoPagarEnDivisa.toFixed(2);
-            codeLabels.forEach(l => l.textContent = codigoPago);
-            symLabels.forEach(s => s.textContent = simboloPago);
+            const restante = saldoPendienteBase - totalCubierto;
 
-            console.log(`[CONVERSION] Base: ${codigoBase} (${saldoPendienteBase}), Pago: ${codigoPago} (${montoPagarEnDivisa}), Tasa: ${tasa}`);
-
-            // 3. Manejar Vía de Pago y Vuelto
-            const metodo = selectMetodo.value;
-            if (metodo === "EFECTIVO") {
-                sectionEfectivo.style.display = 'block';
-                const recibido = parseFloat(inputRecibido.value) || 0;
-                
-                // El vuelto SIEMPRE se calcula en moneda BASE
-                // Convertimos el "Recibido" a moneda base primero
-                let recibidoEnBase = recibido;
-                if (!isBase) {
-                    if (codigoBase === "NIO" && codigoPago === "USD") {
-                        // Recibido en USD, Base en NIO: Multiplicar por tasa (20 USD * 36.60 = 732 NIO)
-                        recibidoEnBase = recibido * tasa;
-                    } else if (codigoBase === "USD" && codigoPago === "NIO") {
-                        // Recibido en NIO, Base en USD: Dividir entre tasa (366 NIO / 36.60 = 10 USD)
-                        recibidoEnBase = recibido / tasa;
-                    } else {
-                         if (tasa > 1) recibidoEnBase = recibido * tasa;
-                         else recibidoEnBase = recibido / tasa;
-                    }
-                }
-
-                const vueltoEnBase = recibidoEnBase - saldoPendienteBase;
-                console.log(`[VUELTO] Recibido: ${recibido} (${recibidoEnBase} Base), Vuelto: ${vueltoEnBase}`);
-
-                if (recibido > 0 && recibidoEnBase < (saldoPendienteBase - 0.009)) { // Margen mínimo
-                    alertInsuficiente.style.display = 'block';
-                    displayVuelto.style.display = 'none';
-                    btnSubmit.disabled = true;
-                } else {
-                    alertInsuficiente.style.display = 'none';
-                    if (recibido > 0) {
-                        displayVuelto.style.display = 'block';
-                        vueltoValor.textContent = vueltoEnBase.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                    } else {
-                        displayVuelto.style.display = 'none';
-                    }
-                    btnSubmit.disabled = false;
-                }
+            if (restante > 0.01) {
+                if (restanteValor) restanteValor.textContent = `${sym} ${restante.toFixed(2)}`;
+                if (alertRestante) alertRestante.style.display = 'block';
+                if (displayVuelto) displayVuelto.style.display = 'none';
+                if (alertInsuficiente) alertInsuficiente.style.display = (montoNio > 0 || montoUsd > 0) ? 'block' : 'none';
+                btnSubmit.disabled = true;
             } else {
-                sectionEfectivo.style.display = 'none';
-                alertInsuficiente.style.display = 'none';
+                if (alertRestante) alertRestante.style.display = 'none';
+                if (alertInsuficiente) alertInsuficiente.style.display = 'none';
                 btnSubmit.disabled = false;
+                
+                const vuelto = totalCubierto - saldoPendienteBase;
+                if (vuelto > 0.01 && selectMetodo.value === "EFECTIVO") {
+                    if (displayVuelto) displayVuelto.style.display = 'block';
+                    // El vuelto se muestra en la moneda base
+                    if (vueltoValor) vueltoValor.textContent = vuelto.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                } else {
+                    if (displayVuelto) displayVuelto.style.display = 'none';
+                }
             }
         }
 
         // Listeners
-        radioMonedas.forEach(r => r.addEventListener('change', updateCalculations));
-        inputRecibido.addEventListener('input', updateCalculations);
-        selectMetodo.addEventListener('change', updateCalculations);
+        if (inputNIO) inputNIO.addEventListener('input', updateCalculations);
+        if (inputUSD) inputUSD.addEventListener('input', updateCalculations);
+        if (selectMetodo) selectMetodo.addEventListener('change', updateCalculations);
 
         // AJAX Submission
-        formPago.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const btn = document.getElementById('btnSubmitPago');
-            const originalHtml = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Procesando...';
+        if (formPago) {
+            formPago.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const btn = document.getElementById('btnSubmitPago');
+                const originalHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Procesando...';
 
-            const formData = new FormData(formPago);
-            
-            // Añadir manualmente el monto recibido ya que no tiene "name" en el input
-            formData.append('montoRecibido', inputRecibido.value || 0);
+                const formData = new FormData();
+                formData.append('idCuenta', "@Model.IdCuenta");
+                formData.append('metodoPago', selectMetodo.value);
+                formData.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value);
 
-            fetch(formPago.action, {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('registrarPagoModal'));
-                    modal.hide();
-                    MediToast.success(data.message);
-                    setTimeout(() => location.reload(), 1500);
-                } else {
-                    MediToast.error(data.message);
+                let pIndex = 0;
+                // Add NIO payment
+                if (parseFloat(inputNIO.value) > 0) {
+                    formData.append(`pagos[${pIndex}].IdMoneda`, idNIO);
+                    formData.append(`pagos[${pIndex}].Monto`, inputNIO.value);
+                    formData.append(`pagos[${pIndex}].MontoRecibido`, inputNIO.value); 
+                    pIndex++;
+                }
+
+                // Add USD payment
+                if (parseFloat(inputUSD.value) > 0) {
+                    formData.append(`pagos[${pIndex}].IdMoneda`, idUSD);
+                    formData.append(`pagos[${pIndex}].Monto`, inputUSD.value);
+                    formData.append(`pagos[${pIndex}].MontoRecibido`, inputUSD.value);
+                }
+
+                fetch(formPago.action, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const modalEl = document.getElementById('registrarPagoModal');
+                        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                        modal.hide();
+                        MediToast.success(data.message);
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        MediToast.error(data.message);
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    MediToast.error("Error al procesar el pago");
                     btn.disabled = false;
                     btn.innerHTML = originalHtml;
-                }
-            })
-            .catch(error => {
-                MediToast.error("Error al procesar el pago");
-                btn.disabled = false;
-                btn.innerHTML = originalHtml;
+                });
             });
-        });
+        }
 
         // Anular Cuenta
         const btnAnular = document.getElementById('btnAnularCuenta');

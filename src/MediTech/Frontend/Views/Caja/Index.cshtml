@@ -153,7 +153,7 @@
                     }
                     @foreach (var item in Model)
                     {
-                        var totalPagado = item.Pagos.Sum(p => p.MontoBase ?? 0);
+                        var totalPagado = item.Pagos.Sum(p => (p.MontoBase ?? 0) - (p.Vuelto ?? 0));
                         var totalFinal = item.TotalFinal ?? 0;
                         var saldo = totalFinal - totalPagado;
                         
@@ -685,7 +685,7 @@
                         <input type="hidden" name="tipoItem" value="${tipo}"><input type="hidden" name="idReferencia" value="${idRef}"><input type="hidden" name="descripcionItem" value="${desc}"></td>
                     <td class="fw-semibold small">${desc}</td>
                     <td><input type="number" name="cantidad" class="form-control form-control-sm text-center" value="${cant}" min="1" onchange="updateRow(this)"></td>
-                    <td><input type="number" name="precioUnitario" class="form-control form-control-sm" value="${precio.toFixed(2)}" step="0.01" onchange="updateRow(this)"></td>
+                    <td><input type="number" name="precioUnitario" class="form-control form-control-sm bg-light" value="${precio.toFixed(2)}" step="0.01" readonly></td>
                     <td class="fw-bold subtotal-cell">${(cant * precio).toFixed(2)}</td>
                     <td><button type="button" class="btn btn-sm text-danger" onclick="$(this).closest('tr').remove(); recalculate();"><i class="fas fa-trash"></i></button></td>
                 `;
