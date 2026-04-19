@@ -206,18 +206,26 @@ public class ConfiguracionController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> RegistrarUsuario(string username, string password, int idRol, string nombre, string apellido)
+    public async Task<IActionResult> RegistrarUsuario(string username, string password, int idRol, string nombre, string apellido, 
+                                                      string numIdentificacion, DateTime fechaNacimiento, string telefono)
     {
-        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(nombre))
+        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(nombre) || 
+            string.IsNullOrEmpty(numIdentificacion) || string.IsNullOrEmpty(telefono))
         {
-            TempData["Error"] = "Todos los campos obligatorios deben estar llenos.";
-            return RedirectToAction(nameof(Index));
+            return Json(new { success = false, message = "Todos los campos obligatorios deben estar llenos." });
         }
+
+        // Normalización de identificación (sin guiones)
+        var idLimpia = numIdentificacion.Replace("-", "").ToUpper();
 
         if (await _context.Usuarios.AnyAsync(u => u.Username == username))
         {
-            TempData["Error"] = "El nombre de usuario ya existe.";
-            return RedirectToAction(nameof(Index));
+            return Json(new { success = false, message = "El nombre de usuario ya existe." });
+        }
+
+        if (await _context.Personas.AnyAsync(p => p.NumIdentificacion == idLimpia))
+        {
+            return Json(new { success = false, message = "El número de identificación ya está registrado en el sistema." });
         }
 
         using var transaction = await _context.Database.BeginTransactionAsync();
@@ -228,6 +236,9 @@ public class ConfiguracionController : Controller
             {
                 PrimerNombre = nombre,
                 PrimerApellido = apellido,
+                NumIdentificacion = idLimpia,
+                FechaNacimiento = fechaNacimiento,
+                Telefono = telefono,
                 FechaCreacion = DateTime.Now,
                 IdEstado = 1,
                 IdTipoIdentificacion = 1, // Default DNI/Cédula
@@ -262,7 +273,7 @@ public class ConfiguracionController : Controller
             _context.Usuarios.Add(usuario);
             await _context.SaveChangesAsync();
 
-            // 4. Asignar módulos por defecto según el rol (opcional, pero ayuda a la experiencia)
+            // 4. Asignar módulos por defecto según el rol
             var modulosDefault = await _context.Modulos.Where(m => m.IdEstado == 1).ToListAsync();
             if (idRol == 1) // ADMIN
             {
@@ -273,7 +284,6 @@ public class ConfiguracionController : Controller
             }
             else
             {
-                // Solo Dashboard por defecto para otros
                 var dashboard = modulosDefault.FirstOrDefault(m => m.Controller == "Home");
                 if (dashboard != null)
                 {
@@ -284,15 +294,13 @@ public class ConfiguracionController : Controller
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
-            TempData["Success"] = $"Usuario {username} creado exitosamente. Ahora puede asignar sus permisos.";
+            return Json(new { success = true, message = $"Usuario {username} creado exitosamente. Ahora puede asignar sus permisos." });
         }
         catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            TempData["Error"] = "Error al registrar usuario: " + ex.Message;
+            return Json(new { success = false, message = "Error al registrar usuario: " + ex.Message });
         }
-
-        return RedirectToAction(nameof(Index));
     }
 
     [HttpPost]
