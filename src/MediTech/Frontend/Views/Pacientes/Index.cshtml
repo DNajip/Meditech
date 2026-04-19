@@ -317,6 +317,9 @@
                 <div class="modal-body p-4 pt-2">
                     <form id="createPacienteForm">
                         @Html.AntiForgeryToken()
+                        <div id="createPacienteErrors" class="alert alert-danger d-none mb-3" style="border-radius: 12px; font-size: 0.85rem;">
+                            <i class="fas fa-exclamation-triangle me-2"></i> <span></span>
+                        </div>
                         <div class="row g-3">
                             <div class="col-12"><div class="section-title mb-2" style="color:#3B82F6; font-weight:700;"><i class="fas fa-id-card me-2"></i>DATOS PERSONALES</div></div>
                             <div class="col-sm-6 col-lg-3">
@@ -423,8 +426,10 @@
                 e.preventDefault();
                 const $form = $(this);
                 const $btn = $form.find('button[type="submit"]');
+                const $errorDiv = $('#createPacienteErrors');
                 const originalText = $btn.html();
 
+                $errorDiv.addClass('d-none').find('span').html('');
                 $btn.html('<i class="fas fa-spinner fa-spin me-2"></i>Guardando...').prop('disabled', true);
 
                 $.ajax({
@@ -433,11 +438,31 @@
                     data: $form.serialize(),
                     headers: { 'X-Requested-With': 'XMLHttpRequest' },
                     success: function(response) {
-                        location.reload();
+                        if (response.success) {
+                            if (typeof MediToast !== 'undefined') {
+                                MediToast.success(response.message || "Paciente registrado exitosamente.");
+                            }
+                            location.reload();
+                        } else {
+                            $btn.html(originalText).prop('disabled', false);
+                            let msg = response.message || "Error de validación.";
+                            if (response.errors && response.errors.length > 0) {
+                                msg = response.errors.join("<br/>");
+                            }
+                            $errorDiv.removeClass('d-none').find('span').html(msg);
+                            
+                            if (typeof MediToast !== 'undefined') {
+                                MediToast.error("No se pudo guardar: " + (response.errors ? response.errors[0] : msg));
+                            }
+                        }
                     },
                     error: function(xhr) {
-                        alert("Error al registrar paciente. Verifique los datos o si ya existe.");
                         $btn.html(originalText).prop('disabled', false);
+                        let errMsg = "Error al conectar con el servidor.";
+                        if (xhr.status === 403) errMsg = "No tiene permisos para realizar esta acción.";
+                        
+                        $errorDiv.removeClass('d-none').find('span').html(errMsg);
+                        if (typeof MediToast !== 'undefined') MediToast.error(errMsg);
                     }
                 });
             });

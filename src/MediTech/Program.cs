@@ -120,9 +120,9 @@ builder.Services.AddSession(options =>
 // Authorization Policies
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Administrador"));
-    options.AddPolicy("DoctorOnly", policy => policy.RequireRole("Doctor"));
-    options.AddPolicy("AsistenteOnly", policy => policy.RequireRole("Asistente"));
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Administrador", "ADMINISTRADOR"));
+    options.AddPolicy("DoctorOnly", policy => policy.RequireRole("Doctor", "DOCTOR"));
+    options.AddPolicy("AsistenteOnly", policy => policy.RequireRole("Asistente", "ASISTENTE"));
 });
 
 var app = builder.Build();

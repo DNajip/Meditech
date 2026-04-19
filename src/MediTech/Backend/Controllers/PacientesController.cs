@@ -102,11 +102,16 @@ public class PacientesController(MediTechContext context) : Controller
         return View();
     }
 
-    // POST: /Pacientes/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Paciente paciente)
     {
+        // Normalización inmediata de identificación (quitar guiones antes de cualquier validación)
+        if (paciente.Persona != null && !string.IsNullOrEmpty(paciente.Persona.NumIdentificacion))
+        {
+            paciente.Persona.NumIdentificacion = paciente.Persona.NumIdentificacion.Replace("-", "").Trim();
+        }
+
         if (paciente.Persona == null)
         {
             ModelState.AddModelError("", "Datos de persona requeridos.");
@@ -114,23 +119,17 @@ public class PacientesController(MediTechContext context) : Controller
 
         if (ModelState.IsValid && paciente.Persona != null)
         {
-            // Logic Check: Age Validation (Min 15 years)
+            // Logic Check: Age Validation (No restriction)
             var today = DateTime.Today;
             var birthDate = paciente.Persona.FechaNacimiento ?? DateTime.Today;
-            var age = today.Year - birthDate.Year;
-            if (birthDate > today.AddYears(-age)) age--;
 
             if (birthDate > today)
             {
                 ModelState.AddModelError("Persona.FechaNacimiento", "La fecha de nacimiento no puede ser futura.");
             }
-            else if (age < 15)
-            {
-                ModelState.AddModelError("Persona.FechaNacimiento", "El paciente debe tener al menos 15 años de edad.");
-            }
 
             // Logic Check: Duplicate Identification
-            string numIdent = paciente.Persona.NumIdentificacion?.Trim() ?? "";
+            string numIdent = paciente.Persona.NumIdentificacion ?? "";
             int? tipoIdent = paciente.Persona.IdTipoIdentificacion;
 
             var exists = await _context.Personas.AnyAsync(p => 
@@ -145,6 +144,12 @@ public class PacientesController(MediTechContext context) : Controller
 
         if (!ModelState.IsValid)
         {
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                return Json(new { success = false, message = "Error de validación.", errors });
+            }
+
             ViewBag.TiposIdentificacion = await _context.TiposIdentificacion.Where(t => t.IdEstado == 1).ToListAsync();
             ViewBag.Generos = await _context.Generos.Where(g => g.IdEstado == 1).ToListAsync();
             return View(paciente);
@@ -160,6 +165,11 @@ public class PacientesController(MediTechContext context) : Controller
             _context.Pacientes.Add(paciente);
             await _context.SaveChangesAsync();
 
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return Json(new { success = true, message = "Paciente registrado exitosamente." });
+            }
+
             TempData["SuccessMessage"] = "Paciente registrado exitosamente.";
             return RedirectToAction(nameof(Index));
         }
@@ -171,6 +181,11 @@ public class PacientesController(MediTechContext context) : Controller
                 errorMsg = "Ya existe una persona registrada con este número de identificación (Error de Base de Datos).";
             }
             
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return Json(new { success = false, message = errorMsg });
+            }
+
             ModelState.AddModelError("", errorMsg);
             ViewBag.TiposIdentificacion = await _context.TiposIdentificacion.Where(t => t.IdEstado == 1).ToListAsync();
             ViewBag.Generos = await _context.Generos.Where(g => g.IdEstado == 1).ToListAsync();

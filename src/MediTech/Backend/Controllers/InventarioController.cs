@@ -273,7 +273,8 @@ namespace MediTech.Backend.Controllers
                 IdProducto = id,
                 Cantidad = cantidad,
                 TipoMovimiento = tipo,
-                Observacion = observacion
+                Observacion = observacion,
+                UsuarioModificacion = User.Identity?.Name ?? "SISTEMA"
             };
 
             _context.Add(movimiento);

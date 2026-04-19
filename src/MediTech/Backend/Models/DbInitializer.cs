@@ -644,6 +644,12 @@ namespace MediTech.Backend.Models
                     IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE name = 'ID_MONEDA_BASE' AND object_id = OBJECT_ID('CAJA.CUENTAS'))
                         ALTER TABLE CAJA.CUENTAS ADD ID_MONEDA_BASE INT NULL;
                 END
+
+                IF EXISTS (SELECT 1 FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE s.name = 'INV' AND t.name = 'MOVIMIENTOS_INVENTARIO')
+                BEGIN
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE name = 'USUARIO_MODIFICACION' AND object_id = OBJECT_ID('INV.MOVIMIENTOS_INVENTARIO'))
+                        ALTER TABLE INV.MOVIMIENTOS_INVENTARIO ADD USUARIO_MODIFICACION NVARCHAR(100) NULL;
+                END
             ");
 
             // 4. Clean negative stock and apply CHECK constraint

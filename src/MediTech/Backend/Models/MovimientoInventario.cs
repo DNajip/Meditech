@@ -28,6 +28,10 @@ namespace MediTech.Backend.Models
         [StringLength(200)]
         public string? Observacion { get; set; }
 
+        [Column("USUARIO_MODIFICACION")]
+        [StringLength(100)]
+        public string? UsuarioModificacion { get; set; }
+
         // Navigation properties
         [ForeignKey("IdProducto")]
         public virtual Producto? Producto { get; set; }

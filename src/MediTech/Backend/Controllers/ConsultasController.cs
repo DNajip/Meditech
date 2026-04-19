@@ -476,7 +476,8 @@ namespace MediTech.Backend.Controllers
                             TipoMovimiento = "VENTA",
                             Cantidad = item.Cantidad,
                             Observacion = $"Cierre de consulta #{consulta.IdConsulta}",
-                            FechaMovimiento = DateTime.Now
+                            FechaMovimiento = DateTime.Now,
+                            UsuarioModificacion = User.Identity?.Name ?? "SISTEMA"
                         };
                         _context.MovimientosInventario.Add(movInventario);
                     }
