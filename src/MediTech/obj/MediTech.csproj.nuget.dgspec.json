@@ -87,6 +87,14 @@
               "target": "Package",
               "version": "[13.0.4, )"
             },
+            "NuGet.Packaging": {
+              "target": "Package",
+              "version": "[6.13.1, )"
+            },
+            "NuGet.Protocol": {
+              "target": "Package",
+              "version": "[6.13.1, )"
+            },
             "QuestPDF": {
               "target": "Package",
               "version": "[2026.2.3, )"

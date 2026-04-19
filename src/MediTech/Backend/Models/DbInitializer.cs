@@ -408,11 +408,11 @@ namespace MediTech.Backend.Models
                     );
                 END
 
-                -- Cleanup old table if exists
-                IF EXISTS (SELECT 1 FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE s.name = 'CLI' AND t.name = 'EXAMEN')
-                BEGIN
-                    DROP TABLE CLI.EXAMEN;
-                END
+                -- Cleanup old table if exists (Commented for safety)
+                -- IF EXISTS (SELECT 1 FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE s.name = 'CLI' AND t.name = 'EXAMEN')
+                -- BEGIN
+                --     DROP TABLE CLI.EXAMEN;
+                -- END
 
                 -- 1.9 Create CLI.EXAMENES if it doesn't exist
                 IF NOT EXISTS (SELECT 1 FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE s.name = 'CLI' AND t.name = 'EXAMENES')
@@ -587,18 +587,9 @@ namespace MediTech.Backend.Models
 
             // Drop and recreate CAJA tables to ensure correct schema v4.0
             context.Database.ExecuteSqlRaw(@"
-                IF NOT EXISTS (SELECT 1 FROM sys.columns c 
-                    JOIN sys.tables t ON c.object_id = t.object_id 
-                    JOIN sys.schemas s ON t.schema_id = s.schema_id 
-                    WHERE s.name = 'CAJA' AND t.name = 'PAGOS' AND c.name = 'TASA_CAMBIO_APLICADA')
+                IF NOT EXISTS (SELECT 1 FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE s.name = 'CAJA' AND t.name = 'CUENTAS')
                 BEGIN
-                    -- Tables exist with wrong structure, drop and recreate
-                    IF EXISTS (SELECT 1 FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE s.name = 'CAJA' AND t.name = 'PAGOS')
-                        DROP TABLE CAJA.PAGOS;
-                    IF EXISTS (SELECT 1 FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE s.name = 'CAJA' AND t.name = 'CUENTA_DETALLE')
-                        DROP TABLE CAJA.CUENTA_DETALLE;
-                    IF EXISTS (SELECT 1 FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE s.name = 'CAJA' AND t.name = 'CUENTAS')
-                        DROP TABLE CAJA.CUENTAS;
+                    -- Create tables if they don't exist
 
                     CREATE TABLE CAJA.CUENTAS(
                         ID_CUENTA INT IDENTITY CONSTRAINT PK_CUENTAS PRIMARY KEY,
@@ -638,6 +629,20 @@ namespace MediTech.Backend.Models
                         FOREIGN KEY(ID_CUENTA) REFERENCES CAJA.CUENTAS(ID_CUENTA),
                         FOREIGN KEY(ID_MONEDA) REFERENCES CAT.MONEDAS(ID_MONEDA)
                     );
+                END
+
+                IF EXISTS (SELECT 1 FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE s.name = 'CAJA' AND t.name = 'PAGOS')
+                BEGIN
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE name = 'TASA_CAMBIO_APLICADA' AND object_id = OBJECT_ID('CAJA.PAGOS'))
+                        ALTER TABLE CAJA.PAGOS ADD TASA_CAMBIO_APLICADA DECIMAL(12,2) NULL;
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE name = 'MONTO_RECIBIDO' AND object_id = OBJECT_ID('CAJA.PAGOS'))
+                        ALTER TABLE CAJA.PAGOS ADD MONTO_RECIBIDO DECIMAL(12,2) NULL;
+                END
+
+                IF EXISTS (SELECT 1 FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE s.name = 'CAJA' AND t.name = 'CUENTAS')
+                BEGIN
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE name = 'ID_MONEDA_BASE' AND object_id = OBJECT_ID('CAJA.CUENTAS'))
+                        ALTER TABLE CAJA.CUENTAS ADD ID_MONEDA_BASE INT NULL;
                 END
             ");
 

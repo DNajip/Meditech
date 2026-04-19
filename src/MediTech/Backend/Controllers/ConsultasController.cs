@@ -358,6 +358,7 @@ namespace MediTech.Backend.Controllers
 
         // POST: Consultas/CerrarConsulta
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CerrarConsulta([FromBody] CerrarConsultaDto data)
         {
             Console.WriteLine("=== CIERRE CONSULTA: Inicio ===");

@@ -277,6 +277,19 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // UI Reset
+        // Reset Hidden IDs
+        const hiddenIds = ['modalTratamientoId', 'PacienteId', 'PosiblePacienteId'];
+        hiddenIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = "";
+        });
+
+        document.getElementById('modalTratamientoSearch').value = "";
+        document.getElementById('modalPacienteSearch').value = "";
+        document.getElementById('modalProspectoNombre').value = "";
+        document.getElementById('modalProspectoApellido').value = "";
+        document.getElementById('modalTelefono').value = "";
+
         document.getElementById('modalAlert')?.classList.add('d-none');
         document.getElementById('tipoPacienteExistente').checked = true;
         window.toggleFields('paciente');
@@ -652,6 +665,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const patientResultsDiv = document.getElementById('pacienteSearchResults');
     
     patientSearchInput?.addEventListener('input', debounce(function() {
+        // Clear IDs if user modifies search text manually
+        document.getElementById('PacienteId').value = "";
+        document.getElementById('PosiblePacienteId').value = "";
+
         const term = this.value;
         if (term.length < 2) {
             patientResultsDiv.style.display = 'none';
@@ -722,6 +739,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const treatmentResultsDiv = document.getElementById('tratamientoSearchResults');
     
     treatmentSearchInput?.addEventListener('input', debounce(function() {
+        // Clear ID if user modifies search text manually
+        document.getElementById('modalTratamientoId').value = "";
+
         const term = this.value;
         if (term.length < 2) {
             treatmentResultsDiv.style.display = 'none';

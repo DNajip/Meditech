@@ -53,7 +53,7 @@ public class CajaController : Controller
                     descuento = c.Descuento,
                     totalFinal = c.TotalFinal,
                     simbolo = c.MonedaBase?.Simbolo ?? "$",
-                    estado = (c.Pagos.Sum(p => (p.MontoBase ?? 0m) - (p.Vuelto ?? 0m)) >= (c.TotalFinal ?? 0m) - 0.05m && (c.TotalFinal ?? 0m) > 0) ? "PAGADA" : "PENDIENTE",
+                    estado = (c.Pagos.Sum(p => (p.MontoBase ?? 0m) - (p.Vuelto ?? 0m)) >= (c.TotalFinal ?? 0m) - 0.01m && (c.TotalFinal ?? 0m) > 0) ? "PAGADA" : "PENDIENTE",
                     detalles = c.Detalles.Select(d => new
                     {
                         tipo = d.TipoItem,
@@ -121,9 +121,9 @@ public class CajaController : Controller
         if (!string.IsNullOrEmpty(estado))
         {
             if (estado == "PENDIENTE")
-                query = query.Where(c => c.Pagos.Sum(p => p.MontoBase ?? 0) < c.TotalFinal && (c.TotalFinal ?? 0) > 0);
+                query = query.Where(c => c.Pagos.Sum(p => p.MontoBase ?? 0) < c.TotalFinal - 0.01m && (c.TotalFinal ?? 0) > 0);
             else if (estado == "PAGADA")
-                query = query.Where(c => c.Pagos.Sum(p => p.MontoBase ?? 0) >= c.TotalFinal && (c.TotalFinal ?? 0) > 0);
+                query = query.Where(c => c.Pagos.Sum(p => p.MontoBase ?? 0) >= c.TotalFinal - 0.01m && (c.TotalFinal ?? 0) > 0);
             else if (estado == "CANCELADA")
                 query = query.Where(c => (c.TotalFinal ?? 0) == 0);
         }
@@ -484,7 +484,7 @@ public class CajaController : Controller
             var totalPagadoPrevio = cuenta.Pagos?.Sum(p => p.MontoBase ?? 0) ?? 0;
             var saldoPendienteBase = (cuenta.TotalFinal ?? 0) - totalPagadoPrevio;
 
-            if (totalMontoBase < saldoPendienteBase - 0.05m)
+            if (totalMontoBase < saldoPendienteBase - 0.01m)
             {
                 return Json(new { success = false, message = $"El monto total ({totalMontoBase:N2}) es insuficiente para cubrir el saldo ({saldoPendienteBase:N2})." });
             }

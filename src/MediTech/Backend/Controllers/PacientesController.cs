@@ -312,6 +312,7 @@ public class PacientesController(MediTechContext context) : Controller
 
     // POST: /Pacientes/GuardarHistorial
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> GuardarHistorial([FromBody] HistorialClinico model)
     {
         if (model.IdPaciente == 0)

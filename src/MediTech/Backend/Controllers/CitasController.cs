@@ -276,6 +276,9 @@ public class CitasController(MediTechContext context, ILogger<CitasController> l
             
         if (string.IsNullOrEmpty(Telefono))
             return Json(new { success = false, message = "El teléfono celular es obligatorio." });
+
+        if (IdTratamiento <= 0)
+            return Json(new { success = false, message = "Debe seleccionar un tratamiento para agendar la cita." });
  
         if (!TimeSpan.TryParse(HoraInicio, out TimeSpan hInicio))
             return Json(new { success = false, message = "Formato de hora de inicio inválido." });
