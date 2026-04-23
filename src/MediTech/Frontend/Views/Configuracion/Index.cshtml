@@ -209,6 +209,9 @@
                                             <button type="button" class="btn btn-light btn-sm rounded-circle shadow-sm border border-secondary border-opacity-10 d-flex align-items-center justify-content-center transition-all hover-primary" data-bs-toggle="modal" data-bs-target="#modalPermisos-@u.IdUsuario" style="width: 38px; height: 38px;" title="Gestionar Permisos" @(u.IdEstado != 1 ? "disabled" : "")>
                                                 <i class="fas fa-shield-alt text-info fs-6"></i>
                                             </button>
+                                            <button type="button" class="btn btn-light btn-sm rounded-circle shadow-sm border border-secondary border-opacity-10 d-flex align-items-center justify-content-center transition-all hover-primary" onclick="abrirModalEditar(@u.IdUsuario, '@u.Username')" style="width: 38px; height: 38px;" title="Editar Usuario" @(u.IdEstado != 1 ? "disabled" : "")>
+                                                <i class="fas fa-pen text-primary fs-6"></i>
+                                            </button>
                                             <button type="button" class="btn btn-light btn-sm rounded-circle shadow-sm border border-secondary border-opacity-10 d-flex align-items-center justify-content-center transition-all hover-danger" onclick="eliminarUsuario(@u.IdUsuario, '@u.Username', '@u.Role?.DescRol?.ToUpper()')" style="width: 38px; height: 38px;" title="@(u.Role?.DescRol?.ToUpper() == "DOCTOR" ? "Suspender Doctor" : "Eliminar permanentemente")" @(u.IdEstado != 1 ? "disabled" : "")>
                                                 <i class="fas @(u.IdEstado != 1 ? "fa-ban text-muted" : "fa-trash-alt text-danger") fs-6"></i>
                                             </button>
@@ -344,6 +347,51 @@
     </div>
 </div>
 
+<!-- MODAL EDITAR USUARIO -->
+<div class="modal fade" id="modalEditarUsuario" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-0 bg-light">
+                <h5 class="modal-title fw-bold text-primary">Editar Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formEditarUsuario">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="idUsuario" id="editUserId" />
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12 text-start">
+                            <label class="form-label small fw-bold">Nombre de Usuario</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white border-end-0"><i class="fas fa-at text-muted"></i></span>
+                                <input type="text" name="username" id="editUsername" class="form-control border-start-0" required placeholder="Ej: jperez" />
+                            </div>
+                        </div>
+                        <div class="col-12 mt-3 p-3 bg-light rounded-3 border border-dashed text-center">
+                            <i class="fas fa-key text-muted mb-2"></i>
+                            <div class="small fw-bold text-secondary">Seguridad y Acceso</div>
+                        </div>
+                        <div class="col-12 text-start">
+                            <label class="form-label small fw-bold">Nueva Contraseña (Opcional)</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white border-end-0"><i class="fas fa-lock text-muted"></i></span>
+                                <input type="password" name="password" class="form-control border-start-0" placeholder="Dejar en blanco para mantener actual" />
+                            </div>
+                            <div class="small text-muted mt-1"><i class="fas fa-info-circle me-1"></i> Solo complete este campo si desea restablecer la contraseña.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-primary btn-sm px-4" id="btnActualizarUsuario">
+                        Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <style>
     .x-small { font-size: 0.75rem; }
     .bg-light { background-color: #F8FAFC !important; }
@@ -410,6 +458,41 @@
                     if (resp.success) {
                         MediToast.success(resp.message);
                         const modal = bootstrap.Modal.getInstance(document.getElementById('modalNuevoUsuario'));
+                        if (modal) modal.hide();
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        MediToast.error(resp.message);
+                        $btn.html(originalText).prop('disabled', false);
+                    }
+                },
+                error: function(xhr) {
+                    MediToast.error("Error al procesar la solicitud (Status: " + xhr.status + ")");
+                    $btn.html(originalText).prop('disabled', false);
+                }
+            });
+        });
+
+        function abrirModalEditar(id, username) {
+            $('#editUserId').val(id);
+            $('#editUsername').val(username);
+            $('#modalEditarUsuario').modal('show');
+        }
+
+        $('#formEditarUsuario').on('submit', function(e) {
+            e.preventDefault();
+            const $btn = $('#btnActualizarUsuario');
+            const originalText = $btn.html();
+            
+            $btn.html('<i class="fas fa-spinner fa-spin me-2"></i>Guardando...').prop('disabled', true);
+
+            $.ajax({
+                url: '@Url.Action("ActualizarUsuario")',
+                type: 'POST',
+                data: $(this).serialize(),
+                success: function(resp) {
+                    if (resp.success) {
+                        MediToast.success(resp.message);
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('modalEditarUsuario'));
                         if (modal) modal.hide();
                         setTimeout(() => location.reload(), 1500);
                     } else {

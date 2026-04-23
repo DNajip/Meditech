@@ -361,6 +361,49 @@ public class ConfiguracionController : Controller
         }
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ActualizarUsuario(int idUsuario, string username, string password)
+    {
+        if (string.IsNullOrEmpty(username))
+        {
+            return Json(new { success = false, message = "El nombre de usuario no puede estar vacío." });
+        }
+
+        var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.IdUsuario == idUsuario);
+        if (usuario == null)
+        {
+            return Json(new { success = false, message = "Usuario no encontrado." });
+        }
+
+        // Validar si el nuevo username ya existe en otro usuario
+        if (await _context.Usuarios.AnyAsync(u => u.Username == username && u.IdUsuario != idUsuario))
+        {
+            return Json(new { success = false, message = "El nombre de usuario ya está en uso por otro empleado." });
+        }
+
+        usuario.Username = username;
+
+        // Si se proporcionó una contraseña, actualizarla
+        if (!string.IsNullOrEmpty(password))
+        {
+            CreatePasswordHash(password, out byte[] passwordHash, out byte[] passwordSalt);
+            usuario.PasswordHash = passwordHash;
+            usuario.PasswordSalt = passwordSalt;
+        }
+
+        try
+        {
+            _context.Usuarios.Update(usuario);
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = $"Usuario {username} actualizado correctamente." });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = "Error al actualizar usuario: " + ex.Message });
+        }
+    }
+
     private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
     {
         using (var hmac = new HMACSHA512())
