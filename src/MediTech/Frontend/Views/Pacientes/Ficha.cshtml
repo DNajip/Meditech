@@ -17,6 +17,7 @@
         gap: 24px;
         align-items: start;
     }
+ @Html.AntiForgeryToken()
 
     /* Responsive adjustments for iPad and Mobile (QA Expert Audit) */
     @@media (max-width: 1200px) {
@@ -1502,9 +1503,13 @@
         btn.disabled = true;
 
         try {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
             const response = await fetch('/Pacientes/GuardarHistorial', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
                 body: JSON.stringify(data)
             });
             const result = await response.json();
@@ -2361,11 +2366,19 @@
         // Validate stock logic for PRODUCTO
         if (!isTrat) {
             const prod = catProductos.find(p => p.id === idRef);
-            // Current quantity in cart
+            // Cantidad ya agregada a la lista actual de cierre
             const cantInCart = itemsCierre.filter(i => i.tipoItem === 'PRODUCTO' && i.idReferencia === idRef).reduce((acc, curr) => acc + curr.cantidad, 0);
-            
-            if (prod && (cant + cantInCart) > prod.stock) {
-                MediToast.warning(`Stock insuficiente. Solo hay ${prod.stock} unidades de ${prod.nombre} (ya tiene ${cantInCart} agregadas).`);
+            const totalStock = prod ? prod.stock : 0;
+            const remaining = totalStock - cantInCart;
+
+            if (prod && (cant + cantInCart) > totalStock) {
+                if (remaining <= 0) {
+                    MediToast.warning(`Stock insuficiente. Ya ha agregado todas las unidades disponibles (${totalStock}) de ${prod.nombre} a la factura.`);
+                } else {
+                    MediToast.warning(`Stock insuficiente. Usted ya tiene ${cantInCart} de este producto en la factura. En stock total hay ${totalStock}, por lo que solamente le quedan ${remaining} disponibles. El monto solicitado es mayor al stock restante, por favor ingrese una cantidad válida.`);
+                    document.getElementById('cantCierreProducto').value = remaining;
+                    document.getElementById('cantCierreProducto').focus();
+                }
                 return;
             }
             desc = desc.split(' (Stock')[0]; // Limpiar el texto visual del select para guardar nomás el nombre
@@ -2465,9 +2478,13 @@
         console.log('=== CIERRE CONSULTA: Payload ===', JSON.stringify(payload, null, 2));
 
             try {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
                 const response = await fetch('/Consultas/CerrarConsulta', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
                     body: JSON.stringify(payload)
                 });
 
