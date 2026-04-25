@@ -246,7 +246,10 @@
                         <div class="p-3 mb-3" style="background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <label class="fw-bold small text-secondary"><i class="fas fa-money-bill-alt me-1 text-primary"></i> Pagar en Córdoba (NIO)</label>
-                                <span class="badge bg-soft-primary text-primary" style="font-size: 0.65rem;">MONEDA BASE</span>
+                                <div class="d-flex gap-1">
+                                    <span class="badge bg-soft-primary text-primary" id="badgeBaseNIO" style="font-size: 0.65rem; display:none;">MONEDA BASE</span>
+                                    <span class="badge bg-soft-warning text-warning" id="badgeCuentaNIO" style="font-size: 0.65rem; display:none;">MONEDA CUENTA</span>
+                                </div>
                             </div>
                             <div class="input-group">
                                 <span class="input-group-text bg-white border-0 shadow-sm" style="border-radius: 8px 0 0 8px;">C$</span>
@@ -261,7 +264,11 @@
                         <div class="p-3 mb-4" style="background: #f0fdf4; border-radius: 12px; border: 1px solid #dcfce7;">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <label class="fw-bold small text-success"><i class="fas fa-dollar-sign me-1"></i> Pagar en Dólares (USD)</label>
-                                <span class="badge bg-soft-success text-success" id="conversionFactorLabel" style="font-size: 0.65rem;">Tasa: --.--</span>
+                                <div class="d-flex gap-1">
+                                    <span class="badge bg-soft-success text-success" id="conversionFactorLabel" style="font-size: 0.65rem;">Tasa: --.--</span>
+                                    <span class="badge bg-soft-primary text-primary" id="badgeBaseUSD" style="font-size: 0.65rem; display:none;">MONEDA BASE</span>
+                                    <span class="badge bg-soft-warning text-warning" id="badgeCuentaUSD" style="font-size: 0.65rem; display:none;">MONEDA CUENTA</span>
+                                </div>
                             </div>
                             <div class="input-group">
                                 <span class="input-group-text bg-white border-0 shadow-sm" style="border-radius: 8px 0 0 8px;">$</span>
@@ -374,45 +381,58 @@
             saldoPendienteBase = saldoPendienteOriginal * tasa;
         }
 
+        // Badges Dinámicos
+        if (codigoBase === "NIO") document.getElementById('badgeBaseNIO').style.display = 'block';
+        else document.getElementById('badgeBaseUSD').style.display = 'block';
+
+        if (codigoCuenta === "NIO") document.getElementById('badgeCuentaNIO').style.display = 'block';
+        else document.getElementById('badgeCuentaUSD').style.display = 'block';
+
         if (factorLabel) factorLabel.textContent = `Tasa: ${tasa.toFixed(2)}`;
 
         function updateCalculations() {
             const montoNio = parseFloat(inputNIO.value) || 0;
             const montoUsd = parseFloat(inputUSD.value) || 0;
 
-            let totalCubierto = 0;
-            let nioEqBase = 0;
-            let usdEqBase = 0;
+            // Normalización de entrada a moneda de la cuenta (para ver si cubre la deuda)
+            let nioEnCuenta = 0;
+            let usdEnCuenta = 0;
 
-            // Lógica Cruzada para Etiquetas
-            const nioEnUsd = montoNio / tasa;
-            const usdEnNio = montoUsd * tasa;
-
-            if (codigoBase === "NIO") {
-                // Base NIO
-                nioEqBase = montoNio;
-                usdEqBase = montoUsd * tasa;
-                totalCubierto = nioEqBase + usdEqBase;
-                
-                if (nioEquivLabel) nioEquivLabel.textContent = `$ ${nioEnUsd.toFixed(2)}`;
-                if (usdEquivLabel) usdEquivLabel.textContent = `C$ ${usdEnNio.toFixed(2)}`;
+            if (codigoCuenta === "USD") {
+                nioEnCuenta = Math.round((montoNio / tasa) * 100) / 100;
+                usdEnCuenta = montoUsd;
             } else {
-                // Base USD
-                usdEqBase = montoUsd;
-                nioEqBase = montoNio / tasa;
-                totalCubierto = usdEqBase + nioEqBase;
-
-                if (nioEquivLabel) nioEquivLabel.textContent = `$ ${nioEnUsd.toFixed(2)}`;
-                if (usdEquivLabel) usdEquivLabel.textContent = `C$ ${usdEnNio.toFixed(2)}`;
+                nioEnCuenta = montoNio;
+                usdEnCuenta = Math.round((montoUsd * tasa) * 100) / 100;
             }
 
-            const sym = codigoBase === "NIO" ? "C$" : "$";
-            if (totalCubiertoLabel) totalCubiertoLabel.textContent = `${sym} ${totalCubierto.toFixed(2)}`;
+            const totalCubierto = Math.round((nioEnCuenta + usdEnCuenta) * 100) / 100;
+            
+            // Actualizar etiquetas de equivalencia ("Vale")
+            const nioEquivUsd = Math.round((montoNio / tasa) * 100) / 100;
+            const usdEquivNio = Math.round((montoUsd * tasa) * 100) / 100;
 
-            const restante = saldoPendienteBase - totalCubierto;
+            if (nioEquivLabel) nioEquivLabel.textContent = `$ ${nioEquivUsd.toFixed(2)}`;
+            if (usdEquivLabel) usdEquivLabel.textContent = `C$ ${usdEquivNio.toFixed(2)}`;
+
+            // Mostrar total cubierto en la moneda de la cuenta
+            const symCuenta = codigoCuenta === "USD" ? "$" : "C$";
+            if (totalCubiertoLabel) {
+                totalCubiertoLabel.textContent = `${symCuenta} ${totalCubierto.toFixed(2)}`;
+                // Color dinámico
+                if (totalCubierto >= saldoPendienteOriginal - 0.01) {
+                    totalCubiertoLabel.classList.remove('text-danger');
+                    totalCubiertoLabel.classList.add('text-primary');
+                } else {
+                    totalCubiertoLabel.classList.remove('text-primary');
+                    totalCubiertoLabel.classList.add('text-danger');
+                }
+            }
+
+            const restante = Math.round((saldoPendienteOriginal - totalCubierto) * 100) / 100;
 
             if (restante > 0.01) {
-                if (restanteValor) restanteValor.textContent = `${sym} ${restante.toFixed(2)}`;
+                if (restanteValor) restanteValor.textContent = `${symCuenta} ${restante.toFixed(2)}`;
                 if (alertRestante) alertRestante.style.display = 'block';
                 if (displayVuelto) displayVuelto.style.display = 'none';
                 if (alertInsuficiente) alertInsuficiente.style.display = (montoNio > 0 || montoUsd > 0) ? 'block' : 'none';
@@ -422,11 +442,18 @@
                 if (alertInsuficiente) alertInsuficiente.style.display = 'none';
                 btnSubmit.disabled = false;
                 
-                const vuelto = totalCubierto - saldoPendienteBase;
-                if (vuelto > 0.01 && selectMetodo.value === "EFECTIVO") {
+                // Cálculo de Vuelto SIEMPRE en NIO
+                let vueltoNio = 0;
+                if (codigoCuenta === "USD") {
+                    const vueltoUsd = totalCubierto - saldoPendienteOriginal;
+                    vueltoNio = Math.round((vueltoUsd * tasa) * 100) / 100;
+                } else {
+                    vueltoNio = Math.round((totalCubierto - saldoPendienteOriginal) * 100) / 100;
+                }
+
+                if (vueltoNio > 0.01 && selectMetodo.value === "EFECTIVO") {
                     if (displayVuelto) displayVuelto.style.display = 'block';
-                    // El vuelto se muestra en la moneda base
-                    if (vueltoValor) vueltoValor.textContent = vuelto.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    if (vueltoValor) vueltoValor.textContent = vueltoNio.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 } else {
                     if (displayVuelto) displayVuelto.style.display = 'none';
                 }
