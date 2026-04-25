@@ -89,19 +89,11 @@
 <!-- Stat Cards -->
 <div class="row g-3 mb-4">
     <div class="col-sm-6 col-lg-4">
-        @if (allowedModules.Contains("Pacientes") || isAdmin) {
-            <a href="/Pacientes" class="stat-card">
-                <div class="icon-box icon-blue"><i class="fas fa-users"></i></div>
-                <div class="stat-value">@ViewBag.TotalPacientes</div>
-                <div class="stat-label">Total Pacientes</div>
-            </a>
-        } else {
-            <div class="stat-card">
-                <div class="icon-box icon-blue"><i class="fas fa-users"></i></div>
-                <div class="stat-value">@ViewBag.TotalPacientes</div>
-                <div class="stat-label">Total Pacientes</div>
-            </div>
-        }
+        <div class="stat-card">
+            <div class="icon-box icon-blue"><i class="fas fa-users"></i></div>
+            <div class="stat-value">@ViewBag.TotalPacientes</div>
+            <div class="stat-label">Total Pacientes</div>
+        </div>
     </div>
     <div class="col-sm-6 col-lg-4">
         <div class="stat-card">
@@ -111,19 +103,11 @@
         </div>
     </div>
     <div class="col-sm-6 col-lg-4">
-        @if (allowedModules.Contains("Pacientes") || isAdmin) {
-            <a href="/Pacientes" class="stat-card">
-                <div class="icon-box icon-purple"><i class="fas fa-user-plus"></i></div>
-                <div class="stat-value">@ViewBag.CitasSemana</div>
-                <div class="stat-label">Citas (Semana)</div>
-            </a>
-        } else {
-            <div class="stat-card">
-                <div class="icon-box icon-purple"><i class="fas fa-user-plus"></i></div>
-                <div class="stat-value">@ViewBag.CitasSemana</div>
-                <div class="stat-label">Citas (Semana)</div>
-            </div>
-        }
+        <div class="stat-card">
+            <div class="icon-box icon-purple"><i class="fas fa-user-plus"></i></div>
+            <div class="stat-value">@ViewBag.CitasSemana</div>
+            <div class="stat-label">Citas (Semana)</div>
+        </div>
     </div>
 </div>
 
