@@ -30,7 +30,7 @@ $(document).ready(function () {
 
         // Close sidebar on window resize if > 992px
         $(window).on('resize', function() {
-            if ($(window).width() >= 992 && $sidebar.hasClass('show')) {
+            if ($(window).width() >= 1200 && $sidebar.hasClass('show')) {
                 $sidebar.removeClass('show');
                 $overlay.removeClass('show');
             }

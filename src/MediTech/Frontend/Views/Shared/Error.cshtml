@@ -1,25 +1,167 @@
-﻿@model ErrorViewModel
+@model ErrorViewModel
 @{
-    ViewData["Title"] = "Error";
+    ViewData["Title"] = "Error en el Sistema";
+    Layout = null; // Usamos un layout limpio para errores críticos
 }
 
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - MediTech</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --bg-color: #f8fafc;
+        }
 
-@if (Model.ShowRequestId)
-{
-    <p>
-        <strong>Request ID:</strong> <code>@Model.RequestId</code>
-    </p>
-}
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            color: #1e293b;
+        }
 
-<h3>Development Mode</h3>
-<p>
-    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
-</p>
-<p>
-    <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
-    It can result in displaying sensitive information from exceptions to end users.
-    For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
-    and restarting the app.
-</p>
+        .error-container {
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .error-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: var(--primary-gradient);
+        }
+
+        .icon-box {
+            width: 100px;
+            height: 100px;
+            background: #fef2f2;
+            color: #ef4444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            margin: 0 auto 2rem;
+            border-radius: 25px;
+            animation: pulse 2s infinite;
+        }
+
+        @@keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        h1 {
+            font-weight: 700;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p {
+            color: #64748b;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .btn-home {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
+        }
+
+        .btn-home:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(99, 102, 241, 0.3);
+            color: white;
+        }
+
+        .request-id {
+            margin-top: 3rem;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            padding: 0.5rem;
+            background: #f1f5f9;
+            border-radius: 8px;
+            display: inline-block;
+        }
+
+        .decorative-circle {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: var(--primary-gradient);
+            opacity: 0.03;
+            border-radius: 50%;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <div class="decorative-circle" style="top: -100px; right: -100px;"></div>
+    <div class="decorative-circle" style="bottom: -100px; left: -100px;"></div>
+
+    <div class="error-container">
+        <div class="icon-box">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        
+        <h1>¡Ups! Algo salió mal</h1>
+        
+        <p>
+            Hemos detectado un inconveniente al procesar tu solicitud. 
+            No te preocupes, tu información médica está segura y nuestro equipo técnico ha sido notificado automáticamente.
+        </p>
+
+        <div class="d-grid gap-2 d-md-flex justify-content-center">
+            <a href="/" class="btn-home">
+                <i class="fas fa-home"></i> Volver al Inicio
+            </a>
+            <a href="javascript:history.back()" class="btn btn-outline-secondary" style="border-radius: 12px; padding: 0.8rem 2rem; font-weight: 600;">
+                <i class="fas fa-arrow-left"></i> Regresar
+            </a>
+        </div>
+
+        @if (Model.ShowRequestId)
+        {
+            <div class="request-id">
+                <i class="fas fa-fingerprint me-1"></i> ID de Seguimiento: <strong>@Model.RequestId</strong>
+            </div>
+        }
+    </div>
+</body>
+</html>

@@ -239,7 +239,7 @@
                             <label class="form-label fw-bold small text-uppercase text-muted silver-label mb-2">Descripción Corta</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light border-0"><i class="fas fa-align-left text-muted small"></i></span>
-                                <textarea name="Description" class="form-control bg-light border-0" rows="3" placeholder="Detalles o especificaciones del producto..."></textarea>
+                                <textarea name="Descripcion" class="form-control bg-light border-0" rows="3" placeholder="Detalles o especificaciones del producto..."></textarea>
                             </div>
                         </div>
 
@@ -356,7 +356,7 @@
 
                         <div class="col-md-4 d-flex align-items-center">
                             <div class="form-check form-switch mt-4">
-                                <input class="form-check-input" type="checkbox" name="Activo" id="editActivo" value="true">
+                                <input class="form-check-input" type="checkbox" name="Activo" id="editActivo">
                                 <label class="form-check-label fw-bold text-dark ms-2" for="editActivo">Producto Activo</label>
                             </div>
                         </div>
@@ -527,12 +527,19 @@
                 const $btn = $('#btnConfirmarEdit');
                 const originalText = $btn.html();
 
-                $btn.html('<i class="fas fa-spinner fa-spin me-2"></i>Actualizando...').prop('disabled', true);
+                // Robust Checkbox handling for serialize
+                let formData = $form.serializeArray();
+                $form.find('input[type="checkbox"]').each(function() {
+                    if (!$(this).prop('checked')) {
+                        // If unchecked, serializeArray misses it. We add it as false.
+                        formData.push({ name: this.name, value: 'false' });
+                    }
+                });
 
                 $.ajax({
                     url: '@Url.Action("Edit")/' + ($('#editIdProducto').val() || ''),
                     type: 'POST',
-                    data: $form.serialize(),
+                    data: $.param(formData),
                     headers: { 'X-Requested-With': 'XMLHttpRequest' },
                     success: function(response) {
                         console.log("MediTech Debug: Edit POST Success response:", response);
@@ -667,10 +674,18 @@
 
                 $btn.html('<i class="fas fa-spinner fa-spin me-2"></i>Guardando...').prop('disabled', true);
 
+                // Robust Checkbox handling for serialize
+                let formData = $form.serializeArray();
+                $form.find('input[type="checkbox"]').each(function() {
+                    if (!$(this).prop('checked')) {
+                        formData.push({ name: this.name, value: 'false' });
+                    }
+                });
+
                 $.ajax({
                     url: '@Url.Action("Create")',
                     type: 'POST',
-                    data: $form.serialize(),
+                    data: $.param(formData),
                     headers: { 'X-Requested-With': 'XMLHttpRequest' },
                     success: function (response) {
                         if (response.success) {

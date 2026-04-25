@@ -1,0 +1,10 @@
+[bin]
+[obj]
+[out]
+.vscode/
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+.idea/
+.DS_Store

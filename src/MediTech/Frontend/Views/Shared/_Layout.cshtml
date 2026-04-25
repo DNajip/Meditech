@@ -54,23 +54,31 @@
         /* ===== SIDEBAR ===== */
         .sidebar {
             position: fixed;
-            left: 0; top: 0;
+            left: 0; 
+            top: 0;
+            bottom: 0;
             width: var(--sidebar-width);
-            height: 100vh;
             background: var(--sidebar-bg);
             border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
+            display: flex !important;
+            flex-direction: column !important;
             z-index: 1000;
             transition: transform 0.3s;
         }
 
         .sidebar-brand {
+            flex-shrink: 0;
             display: flex;
             align-items: center;
             gap: 10px;
             padding: 18px 20px;
             border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            scrollbar-width: thin;
         }
 
         .sidebar-brand img { height: 36px; }
@@ -89,7 +97,7 @@
             font-weight: 600;
         }
 
-        .sidebar-nav { list-style: none; padding: 0; margin: 0; flex: 1; }
+        .sidebar-nav { list-style: none; padding: 0; margin: 0; }
 
         .sidebar-nav li a {
             display: flex;
@@ -112,6 +120,13 @@
         }
 
         .sidebar-nav li a i { width: 20px; text-align: center; font-size: 1rem; }
+
+        .sidebar-footer {
+            flex-shrink: 0;
+            padding: 16px 20px;
+            border-top: 1px solid var(--border-color);
+            background: var(--sidebar-bg);
+        }
 
         /* ===== TOPBAR ===== */
         .topbar {
@@ -240,46 +255,46 @@
             </button>
         </div>
 
-        <div class="sidebar-section-label">Principal</div>
-        <ul class="sidebar-nav">
-            <li><a href="@Url.Action("Index","Home")" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")"><i class="fas fa-th-large"></i> Dashboard</a></li>
-            
-            @if (allowedModules.Contains("Citas") || userRole == "ADMINISTRADOR") {
-                <li><a href="@Url.Action("Index","Citas")" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Citas" ? "active" : "")"><i class="fas fa-calendar-alt"></i> Citas</a></li>
-            }
-            
-            @if (allowedModules.Contains("Pacientes") || userRole == "ADMINISTRADOR") {
-                <li><a href="@Url.Action("Index","Pacientes")" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Pacientes" ? "active" : "")"><i class="fas fa-user-injured"></i> Pacientes</a></li>
-            }
-            
-            @if (allowedModules.Contains("Tratamientos") || userRole == "ADMINISTRADOR") {
-                <li><a href="@Url.Action("Index","Tratamientos")" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Tratamientos" ? "active" : "")"><i class="fas fa-hand-holding-medical"></i> Tratamientos</a></li>
-            }
-            
-            @if (allowedModules.Contains("Inventario") || userRole == "ADMINISTRADOR") {
-                <li><a href="@Url.Action("Index","Inventario")" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Inventario" ? "active" : "")"><i class="fas fa-boxes"></i> Inventario</a></li>
-            }
+        <div class="sidebar-content">
+            <div class="sidebar-section-label">Principal</div>
+            <ul class="sidebar-nav">
+                <li><a href="@Url.Action("Index","Home")" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")"><i class="fas fa-th-large"></i> Dashboard</a></li>
+                
+                @if (allowedModules.Contains("Citas") || userRole == "ADMINISTRADOR") {
+                    <li><a href="@Url.Action("Index","Citas")" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Citas" ? "active" : "")"><i class="fas fa-calendar-alt"></i> Citas</a></li>
+                }
+                
+                @if (allowedModules.Contains("Pacientes") || userRole == "ADMINISTRADOR") {
+                    <li><a href="@Url.Action("Index","Pacientes")" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Pacientes" ? "active" : "")"><i class="fas fa-user-injured"></i> Pacientes</a></li>
+                }
+                
+                @if (allowedModules.Contains("Tratamientos") || userRole == "ADMINISTRADOR") {
+                    <li><a href="@Url.Action("Index","Tratamientos")" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Tratamientos" ? "active" : "")"><i class="fas fa-hand-holding-medical"></i> Tratamientos</a></li>
+                }
+                
+                @if (allowedModules.Contains("Inventario") || userRole == "ADMINISTRADOR") {
+                    <li><a href="@Url.Action("Index","Inventario")" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Inventario" ? "active" : "")"><i class="fas fa-boxes"></i> Inventario</a></li>
+                }
+            </ul>
 
-
-        </ul>
-
-        <div class="sidebar-section-label">Administración</div>
-        <ul class="sidebar-nav">
-            @if (allowedModules.Contains("Caja") || userRole == "ADMINISTRADOR") {
-                <li><a href="@Url.Action("Index","Caja")" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Caja" ? "active" : "")"><i class="fas fa-cash-register"></i> Caja y Pagos</a></li>
-            }
-            
-            @if (allowedModules.Contains("Reportes") || userRole == "ADMINISTRADOR") {
-                <li><a href="@Url.Action("Index","Reportes")" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Reportes" ? "active" : "")"><i class="fas fa-chart-bar"></i> Reportes</a></li>
-            }
-            
-            @if (userRole == "ADMINISTRADOR") {
-                <li><a href="@Url.Action("Index","Configuracion")" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Configuracion" ? "active" : "")"><i class="fas fa-cog"></i> Configuración</a></li>
-            }
-        </ul>
+            <div class="sidebar-section-label">Administración</div>
+            <ul class="sidebar-nav">
+                @if (allowedModules.Contains("Caja") || userRole == "ADMINISTRADOR") {
+                    <li><a href="@Url.Action("Index","Caja")" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Caja" ? "active" : "")"><i class="fas fa-cash-register"></i> Caja y Pagos</a></li>
+                }
+                
+                @if (allowedModules.Contains("Reportes") || userRole == "ADMINISTRADOR") {
+                    <li><a href="@Url.Action("Index","Reportes")" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Reportes" ? "active" : "")"><i class="fas fa-chart-bar"></i> Reportes</a></li>
+                }
+                
+                @if (userRole == "ADMINISTRADOR") {
+                    <li><a href="@Url.Action("Index","Configuracion")" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Configuracion" ? "active" : "")"><i class="fas fa-cog"></i> Configuración</a></li>
+                }
+            </ul>
+        </div>
 
         <!-- Logout at bottom -->
-        <div style="padding: 16px 20px; border-top: 1px solid var(--border-color); margin-top: auto;">
+        <div class="sidebar-footer">
             <form asp-controller="Account" asp-action="Logout" method="post">
                 <button type="submit" class="btn btn-outline-danger btn-sm w-100">
                     <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
@@ -291,7 +306,7 @@
     <!-- TOPBAR -->
     <div class="topbar">
         <div class="d-flex align-items-center gap-3">
-             <button type="button" class="btn btn-light btn-sm d-lg-none" id="sidebarToggle">
+             <button type="button" class="btn btn-light btn-sm d-xl-none" id="sidebarToggle">
                 <i class="fas fa-bars"></i>
              </button>
              @{
