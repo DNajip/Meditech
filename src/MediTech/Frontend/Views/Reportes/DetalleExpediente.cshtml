@@ -1,0 +1,313 @@
+@model MediTech.Backend.Models.Consulta
+@{
+    ViewData["Title"] = "Expediente de Consulta";
+}
+
+<style>
+    :root {
+        --medical-blue: #2563eb;
+        --medical-slate: #64748b;
+        --record-bg: #f8fafc;
+    }
+
+    .medical-record-paper {
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
+        min-height: 1000px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .header-accent {
+        height: 6px;
+        background: linear-gradient(90deg, #3b82f6 0%, #10b981 100%);
+        width: 100%;
+    }
+
+    .clinic-logo-section {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .logo-circle {
+        width: 50px;
+        height: 50px;
+        background: #eff6ff;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #3b82f6;
+        font-size: 1.5rem;
+        border: 1px solid #dbeafe;
+    }
+
+    .vital-signs-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .vital-sign-card {
+        background: #ffffff;
+        border: 1px solid #f1f5f9;
+        border-radius: 12px;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.2s;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    .vital-sign-card:hover {
+        border-color: #3b82f6;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .sign-icon {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+        color: #94a3b8;
+    }
+
+    .sign-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        color: #64748b;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+
+    .sign-value {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #1e293b;
+    }
+
+    .sign-unit {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #94a3b8;
+        margin-left: 2px;
+    }
+
+    .info-section-title {
+        font-size: 0.9rem;
+        font-weight: 800;
+        color: #3b82f6;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .info-section-title::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: #e2e8f0;
+    }
+
+    .record-card {
+        padding: 20px;
+        border-radius: 12px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        margin-bottom: 25px;
+    }
+
+    .signature-box {
+        margin-top: 80px;
+    }
+
+    .signature-line {
+        border-top: 1.5px solid #1e293b;
+        width: 220px;
+        margin: 0 auto 10px;
+    }
+
+    /* PRINT OPTIMIZATION */
+    @@media print {
+        body {
+            background: white !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .container {
+            max-width: 100% !important;
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .medical-record-paper {
+            box-shadow: none !important;
+            border: none !important;
+            border-radius: 0 !important;
+            width: 100% !important;
+        }
+        .noprint {
+            display: none !important;
+        }
+        .record-card {
+            background: transparent !important;
+            border: 1px solid #e2e8f0 !important;
+        }
+        .vital-sign-card {
+            box-shadow: none !important;
+            border: 1px solid #f1f5f9 !important;
+        }
+    }
+</style>
+
+<div class="container py-4">
+    <div class="page-header page-header-premium mb-4 noprint">
+        <div>
+            <h2 class="display-6 fw-bold text-gradient-primary mb-0">Expediente Clínico</h2>
+            <p class="text-muted d-none d-sm-block">Historial detallado de la atención médica (Módulo Reportes)</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-outline-secondary shadow-sm px-3" style="border-radius:12px;">
+                <i class="fas fa-print me-1"></i> Imprimir
+            </button>
+            <a href="@Url.Action("Index", "Reportes")" class="btn btn-primary shadow-sm px-4" style="border-radius:12px;">
+                <i class="fas fa-arrow-left me-1"></i> <span class="d-none d-sm-inline">Volver a Reportes</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="medical-record-paper">
+        <div class="header-accent"></div>
+        <div class="p-4 p-md-5">
+            <!-- Header Section -->
+            <div class="row align-items-center mb-5">
+                <div class="col-md-7">
+                    <div class="clinic-logo-section">
+                        <div class="logo-circle">
+                            <i class="fas fa-clinic-medical"></i>
+                        </div>
+                        <div>
+                            <h3 class="fw-bold mb-0 text-dark">MEDITECH</h3>
+                            <p class="text-primary fw-bold small text-uppercase mb-0" style="letter-spacing: 2px;">Clínica de Especialidades</p>
+                            <p class="text-muted small mb-0">Guadalajara, México | Tel: (33) 1234 5678</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-5 text-md-end mt-4 mt-md-0">
+                    <div class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 border border-primary border-opacity-10 mb-2">
+                        <i class="fas fa-hashtag me-1"></i> Registro: @Model.IdConsulta.ToString("00000")
+                    </div>
+                    <div class="h5 fw-bold text-dark mb-0">@Model.FechaConsulta.ToString("dd 'de' MMMM, yyyy")</div>
+                    <div class="small text-muted text-uppercase fw-bold">@Model.FechaConsulta.ToString("hh:mm tt")</div>
+                </div>
+            </div>
+
+            <!-- Entities Section (Patient & Doctor) -->
+            <div class="row mb-5">
+                <div class="col-md-6 mb-4 mb-md-0">
+                    <div class="p-3 border-start border-4 border-primary bg-light bg-opacity-50">
+                        <label class="info-label small text-muted text-uppercase fw-bold d-block mb-1">Paciente</label>
+                        <h4 class="fw-bold text-dark mb-1">@Model.Cita?.Paciente?.Persona?.PrimerNombre @Model.Cita?.Paciente?.Persona?.PrimerApellido</h4>
+                        <div class="small text-muted">
+                            <span class="me-3"><i class="fas fa-id-card me-1"></i> ID: #@Model.Cita?.Paciente?.IdPaciente</span>
+                            <span><i class="fas fa-phone me-1"></i> @Model.Cita?.Paciente?.Persona?.Telefono</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 border-start border-4 border-info bg-light bg-opacity-50 h-100">
+                        <label class="info-label small text-muted text-uppercase fw-bold d-block mb-1">Médico Tratante</label>
+                        <h4 class="fw-bold text-dark mb-1">Dr. @Model.Medico?.Persona?.PrimerNombre @Model.Medico?.Persona?.PrimerApellido</h4>
+                        <div class="small text-muted">
+                            <i class="fas fa-user-md me-1"></i> Especialidad: Odontología General
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vital Signs Section -->
+            @if (Model.SignosVitales != null)
+            {
+                <div class="mb-5">
+                    <h6 class="info-section-title"><i class="fas fa-wave-square me-2"></i>Signos Vitales</h6>
+                    <div class="vital-signs-grid">
+                        <div class="vital-sign-card">
+                            <i class="fas fa-heartbeat sign-icon text-danger"></i>
+                            <span class="sign-label">P. Arterial</span>
+                            <span class="sign-value">@(Model.SignosVitales.PresionArterial ?? "N/A")</span>
+                        </div>
+                        <div class="vital-sign-card">
+                            <i class="fas fa-thermometer-half sign-icon text-warning"></i>
+                            <span class="sign-label">Temp.</span>
+                            <span class="sign-value">@(Model.SignosVitales.Temperatura?.ToString("0.0") ?? "N/A")<span class="sign-unit">°C</span></span>
+                        </div>
+                        <div class="vital-sign-card">
+                            <i class="fas fa-tachometer-alt sign-icon text-primary"></i>
+                            <span class="sign-label">Pulso</span>
+                            <span class="sign-value">@(Model.SignosVitales.FrecuenciaCardiaca?.ToString() ?? "N/A")<span class="sign-unit">LPM</span></span>
+                        </div>
+                        <div class="vital-sign-card">
+                            <i class="fas fa-lungs sign-icon text-info"></i>
+                            <span class="sign-label">Sat. O2</span>
+                            <span class="sign-value">@(Model.SignosVitales.SaturacionOxigeno?.ToString() ?? "N/A")<span class="sign-unit">%</span></span>
+                        </div>
+                        <div class="vital-sign-card">
+                            <i class="fas fa-weight sign-icon text-success"></i>
+                            <span class="sign-label">Peso</span>
+                            <span class="sign-value">@(Model.SignosVitales.Peso?.ToString("0.0") ?? "N/A")<span class="sign-unit">kg</span></span>
+                        </div>
+                        <div class="vital-sign-card">
+                            <i class="fas fa-ruler-vertical sign-icon text-secondary"></i>
+                            <span class="sign-label">Altura</span>
+                            <span class="sign-value">@(Model.SignosVitales.Altura?.ToString("0") ?? "N/A")<span class="sign-unit">cm</span></span>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Clinical Content -->
+            <div class="mb-5">
+                <h6 class="info-section-title"><i class="fas fa-clipboard-check me-2"></i>Información Clínica</h6>
+                
+                <div class="record-card">
+                    <label class="small text-muted text-uppercase fw-bold d-block mb-2">Motivo de la Consulta</label>
+                    <p class="mb-0 text-dark fs-5">@(string.IsNullOrEmpty(Model.MotivoConsulta) ? "No especificado" : Model.MotivoConsulta)</p>
+                </div>
+
+                <div class="record-card" style="border-left: 5px solid #22c55e;">
+                    <label class="small text-muted text-uppercase fw-bold d-block mb-2">Diagnóstico Definitivo</label>
+                    <p class="mb-0 fw-bold text-dark h5">@(string.IsNullOrEmpty(Model.DiagnosticoPrincipal) ? "Sin diagnóstico registrado" : Model.DiagnosticoPrincipal)</p>
+                </div>
+
+                <div class="record-card">
+                    <label class="small text-muted text-uppercase fw-bold d-block mb-2">Observaciones y Recomendaciones</label>
+                    <p class="mb-0 text-muted" style="white-space: pre-wrap; line-height: 1.6;">@(string.IsNullOrEmpty(Model.Observaciones) ? "El médico no registró observaciones adicionales para esta sesión." : Model.Observaciones)</p>
+                </div>
+            </div>
+
+            <!-- Footer / Signatures -->
+            <div class="row signature-box">
+                <div class="col-6 text-center">
+                    <div class="signature-line"></div>
+                    <div class="fw-bold small text-dark">Firma del Médico Responsable</div>
+                    <div class="small text-muted">Dr. @Model.Medico?.Persona?.PrimerNombre @Model.Medico?.Persona?.PrimerApellido</div>
+                </div>
+                <div class="col-6 text-center">
+                    <div class="signature-line"></div>
+                    <div class="fw-bold small text-dark">Sello de Validación Clínica</div>
+                    <div class="small text-muted">MediTech Clinic S.A de C.V</div>
+                </div>
+            </div>
+            
+            <div class="mt-5 pt-4 text-center border-top border-light d-none d-print-block">
+                <p class="small text-muted">Documento generado por MediTech System - @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
+            </div>
+        </div>
+    </div>
+</div>

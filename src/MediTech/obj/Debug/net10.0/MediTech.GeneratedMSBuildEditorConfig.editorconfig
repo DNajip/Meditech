@@ -66,22 +66,6 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = RnJvbnRlbmRcVmlld3NcQ29uZmlndXJhY2lvblxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[e:/Programación/Antigravity/Meditech/src/MediTech/Frontend/Views/Consultas/Create.cshtml]
-build_metadata.AdditionalFiles.TargetPath = RnJvbnRlbmRcVmlld3NcQ29uc3VsdGFzXENyZWF0ZS5jc2h0bWw=
-build_metadata.AdditionalFiles.CssScope = 
-
-[e:/Programación/Antigravity/Meditech/src/MediTech/Frontend/Views/Consultas/Details.cshtml]
-build_metadata.AdditionalFiles.TargetPath = RnJvbnRlbmRcVmlld3NcQ29uc3VsdGFzXERldGFpbHMuY3NodG1s
-build_metadata.AdditionalFiles.CssScope = 
-
-[e:/Programación/Antigravity/Meditech/src/MediTech/Frontend/Views/Consultas/Index.cshtml]
-build_metadata.AdditionalFiles.TargetPath = RnJvbnRlbmRcVmlld3NcQ29uc3VsdGFzXEluZGV4LmNzaHRtbA==
-build_metadata.AdditionalFiles.CssScope = 
-
-[e:/Programación/Antigravity/Meditech/src/MediTech/Frontend/Views/Consultas/Recepcion.cshtml]
-build_metadata.AdditionalFiles.TargetPath = RnJvbnRlbmRcVmlld3NcQ29uc3VsdGFzXFJlY2VwY2lvbi5jc2h0bWw=
-build_metadata.AdditionalFiles.CssScope = 
-
 [e:/Programación/Antigravity/Meditech/src/MediTech/Frontend/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = RnJvbnRlbmRcVmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
@@ -122,8 +106,24 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = RnJvbnRlbmRcVmlld3NcUGFjaWVudGVzXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[e:/Programación/Antigravity/Meditech/src/MediTech/Frontend/Views/Reportes/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = RnJvbnRlbmRcVmlld3NcUmVwb3J0ZXNcQ3JlYXRlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/Programación/Antigravity/Meditech/src/MediTech/Frontend/Views/Reportes/DetalleExpediente.cshtml]
+build_metadata.AdditionalFiles.TargetPath = RnJvbnRlbmRcVmlld3NcUmVwb3J0ZXNcRGV0YWxsZUV4cGVkaWVudGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/Programación/Antigravity/Meditech/src/MediTech/Frontend/Views/Reportes/HistorialConsultas.cshtml]
+build_metadata.AdditionalFiles.TargetPath = RnJvbnRlbmRcVmlld3NcUmVwb3J0ZXNcSGlzdG9yaWFsQ29uc3VsdGFzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [e:/Programación/Antigravity/Meditech/src/MediTech/Frontend/Views/Reportes/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = RnJvbnRlbmRcVmlld3NcUmVwb3J0ZXNcSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/Programación/Antigravity/Meditech/src/MediTech/Frontend/Views/Reportes/Recepcion.cshtml]
+build_metadata.AdditionalFiles.TargetPath = RnJvbnRlbmRcVmlld3NcUmVwb3J0ZXNcUmVjZXBjaW9uLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [e:/Programación/Antigravity/Meditech/src/MediTech/Frontend/Views/Shared/AccessDenied.cshtml]

@@ -717,6 +717,18 @@
             // AJAX Final Submit
             $('#formCuenta').on('submit', function(e) {
                 e.preventDefault();
+
+                // Validación de Paciente
+                const idPaciente = $('#idPaciente').val();
+                if (!idPaciente) {
+                    if (typeof MediToast !== 'undefined') {
+                        MediToast.warning("Selecciona a un paciente para continuar");
+                    } else {
+                        alert("Selecciona a un paciente para continuar");
+                    }
+                    return;
+                }
+
                 const $btn = $('#btnGuardar');
                 $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Guardando...');
                 

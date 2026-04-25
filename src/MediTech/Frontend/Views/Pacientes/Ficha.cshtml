@@ -738,7 +738,7 @@
                 </div>
                 <div class="d-flex gap-2">
                     <span class="badge-consultation">@(((MediTech.Backend.Models.Consulta)ViewBag.ConsultaActiva)?.Cita?.Tratamiento?.NombreTratamiento)</span>
-                    <a href="@Url.Action("Recepcion", "Consultas", new { id = ((MediTech.Backend.Models.Consulta)ViewBag.ConsultaActiva)?.IdCita })" class="btn btn-sm btn-light fw-bold" style="border-radius: 8px; color: #1e40af;">Editar Recepción</a>
+                    <a href="@Url.Action("Recepcion", "Reportes", new { id = ((MediTech.Backend.Models.Consulta)ViewBag.ConsultaActiva)?.IdCita })" class="btn btn-sm btn-light fw-bold" style="border-radius: 8px; color: #1e40af;">Editar Recepción</a>
                 </div>
             </div>
         }
@@ -1419,7 +1419,7 @@
         }
 
         try {
-            const resC = await fetch('/Consultas/GetMonedaConfig');
+            const resC = await fetch('/Reportes/GetMonedaConfig');
             const config = await resC.json();
             if (config.success) {
                 modalCurrencySymbol = config.simbolo;
@@ -2365,17 +2365,17 @@
         // Load catalogs and currency config if not loaded
         if (catTratamientos.length === 0) {
             try { 
-                const resT = await fetch('/Consultas/GetCatTratamientos');
+                const resT = await fetch('/Reportes/GetCatTratamientos');
                 catTratamientos = await resT.json(); 
                 
-                const resP = await fetch('/Consultas/GetCatProductos');
+                const resP = await fetch('/Reportes/GetCatProductos');
                 catProductos = await resP.json(); 
 
                 // Initialize Search Logic
                 initAutocompleteCierre();
 
                 // Load Currency Configuration
-                const resC = await fetch('/Consultas/GetMonedaConfig');
+                const resC = await fetch('/Reportes/GetMonedaConfig');
                 const config = await resC.json();
                 if (config.success) {
                     modalCurrencySymbol = config.simbolo;
@@ -2673,7 +2673,7 @@
 
             try {
                 const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-                const response = await fetch('/Consultas/CerrarConsulta', {
+                const response = await fetch('/Reportes/CerrarConsulta', {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
@@ -2854,7 +2854,7 @@
         if (!container) return;
 
         try {
-            const response = await fetch(`/Consultas/GetHistorialPaciente/${pacienteId}`);
+            const response = await fetch(`/Reportes/GetHistorialPaciente/${pacienteId}`);
             const result = await response.json();
             if (result.success) {
                 allConsultas = result.data;

@@ -256,10 +256,6 @@
                 <li><a href="@Url.Action("Index","Tratamientos")" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Tratamientos" ? "active" : "")"><i class="fas fa-hand-holding-medical"></i> Tratamientos</a></li>
             }
             
-            @if (allowedModules.Contains("Consultas") || userRole == "ADMINISTRADOR") {
-                <li><a href="@Url.Action("Index","Consultas")" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Consultas" ? "active" : "")"><i class="fas fa-stethoscope"></i> Consultas</a></li>
-            }
-            
             @if (allowedModules.Contains("Inventario") || userRole == "ADMINISTRADOR") {
                 <li><a href="@Url.Action("Index","Inventario")" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Inventario" ? "active" : "")"><i class="fas fa-boxes"></i> Inventario</a></li>
             }
