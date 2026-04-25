@@ -192,7 +192,19 @@
                                                     <i class="@GetMetodoIcon(pago.MetodoPago) me-1"></i>@pago.MetodoPago
                                                 </span>
                                             </td>
-                                            <td class="text-end fw-bold text-success">@pago.Moneda?.Simbolo @pago.Monto?.ToString("N2")</td>
+                                            <td class="text-end fw-bold text-success">
+                                                @{
+                                                    decimal montoNeto = (pago.Monto ?? 0);
+                                                    if (pago.Vuelto > 0 && pago.Moneda != null)
+                                                    {
+                                                        // Convertir vuelto base a moneda del pago para restar
+                                                        decimal factor = (pago.TasaCambioAplicada ?? 1);
+                                                        if (pago.Moneda.Codigo == "USD") montoNeto -= (pago.Vuelto.Value / factor);
+                                                        else montoNeto -= pago.Vuelto.Value;
+                                                    }
+                                                }
+                                                @pago.Moneda?.Simbolo @montoNeto.ToString("N2")
+                                            </td>
                                             <td class="text-end text-primary small">@(pago.MontoRecibido > 0 ? pago.Moneda?.Simbolo + " " + pago.MontoRecibido?.ToString("N2") : "-")</td>
                                             <td class="text-end text-success small">@(pago.Vuelto > 0 ? Model.MonedaBase?.Simbolo + " " + pago.Vuelto?.ToString("N2") : "-")</td>
                                             <td>@pago.Moneda?.Nombre</td>

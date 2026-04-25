@@ -100,22 +100,25 @@ public class CajaController : Controller
             query = query.Where(c => c.FechaCreacion.Date == fecha.Value.Date);
         }
 
-        // Estadísticas optimizadas (SQL)
+        // Estadísticas hoy optimizadas
         var config = await _context.ConfiguracionesMoneda.Include(c => c.MonedaBase).FirstOrDefaultAsync();
         ViewBag.MonedaBase = config?.MonedaBase;
 
-        ViewBag.IngresosHoy = await _context.Pagos
+        var pagosHoy = await _context.Pagos
+            .AsNoTracking()
+            .Include(p => p.Moneda)
             .Where(p => p.FechaPago.Date == hoy)
-            .SumAsync(p => (p.MontoBase ?? 0) - (p.Vuelto ?? 0));
+            .ToListAsync();
+
+        ViewBag.IngresosHoyUSD = pagosHoy.Where(p => p.Moneda?.Codigo == "USD").Sum(p => p.Monto);
+        ViewBag.IngresosHoyNIO = pagosHoy.Where(p => p.Moneda?.Codigo == "NIO").Sum(p => p.Monto) - pagosHoy.Sum(p => p.Vuelto ?? 0);
+        ViewBag.TotalRecaudadoHoy = pagosHoy.Sum(p => (p.MontoBase ?? 0) - (p.Vuelto ?? 0));
 
         ViewBag.CuentasHoy = await _context.Cuentas
             .CountAsync(c => c.FechaCreacion.Date == hoy);
 
         ViewBag.CuentasPendientes = await _context.Cuentas
             .CountAsync(c => (c.TotalFinal ?? 0) > c.Pagos.Sum(p => p.MontoBase ?? 0) && (c.TotalFinal ?? 0) > 0);
-
-        ViewBag.TotalRecaudado = await _context.Pagos
-            .SumAsync(p => (p.MontoBase ?? 0) - (p.Vuelto ?? 0));
 
         // Filtro por estado
         if (!string.IsNullOrEmpty(estado))
@@ -401,7 +404,7 @@ public class CajaController : Controller
             ViewBag.TasaDestinoId = activeTasa.IdMonedaDestino;
         }
 
-        var totalPagado = cuenta.Pagos.Sum(p => p.MontoBase ?? 0);
+        var totalPagado = cuenta.Pagos.Sum(p => (p.MontoBase ?? 0) - (p.Vuelto ?? 0));
         ViewBag.TotalPagado = totalPagado;
         ViewBag.SaldoPendiente = (cuenta.TotalFinal ?? 0) - totalPagado;
         ViewBag.IdMonedaBase = ViewBag.MonedaBase?.IdMoneda ?? 0;
@@ -480,8 +483,8 @@ public class CajaController : Controller
                 });
             }
 
-            // Validación de Saldo
-            var totalPagadoPrevio = cuenta.Pagos?.Sum(p => p.MontoBase ?? 0) ?? 0;
+            // Validación de Saldo y Cálculo de Vuelto
+            var totalPagadoPrevio = cuenta.Pagos?.Sum(p => (p.MontoBase ?? 0) - (p.Vuelto ?? 0)) ?? 0;
             var saldoPendienteBase = (cuenta.TotalFinal ?? 0) - totalPagadoPrevio;
 
             if (totalMontoBase < saldoPendienteBase - 0.01m)
@@ -489,11 +492,11 @@ public class CajaController : Controller
                 return Json(new { success = false, message = $"El monto total ({totalMontoBase:N2}) es insuficiente para cubrir el saldo ({saldoPendienteBase:N2})." });
             }
 
-            // Calcular vuelto global si es efectivo
+            // Calcular vuelto global si es efectivo (Comparando contra el saldo pendiente real)
             decimal vueltoTotalBase = 0;
-            if (metodoPago == "EFECTIVO" && totalRecibidoBase > totalMontoBase)
+            if (metodoPago == "EFECTIVO" && totalMontoBase > saldoPendienteBase)
             {
-                vueltoTotalBase = totalRecibidoBase - totalMontoBase;
+                vueltoTotalBase = totalMontoBase - saldoPendienteBase;
                 // Atribuimos el vuelto al primer pago de la lista por registro contable
                 if (nuevosPagos.Count > 0) nuevosPagos[0].Vuelto = vueltoTotalBase;
             }

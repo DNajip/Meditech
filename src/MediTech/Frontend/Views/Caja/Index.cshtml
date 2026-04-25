@@ -20,54 +20,67 @@
 
     <!-- Stats Cards -->
     <div class="row g-3 mb-4">
-        <div class="col-sm-6 col-lg-3">
-            <div class="card card-premium h-100 border-0 shadow-sm overflow-hidden">
-                <div class="card-body d-flex align-items-center">
-                    <div class="icon-shape bg-soft-success rounded-circle me-3">
-                        <i class="fas fa-coins text-success"></i>
+        <div class="col-6 col-lg">
+            <div class="card card-premium h-100 border-0 shadow-sm overflow-hidden border-start border-4 border-success">
+                <div class="card-body p-3 d-flex align-items-center">
+                    <div class="icon-shape bg-soft-success rounded-circle me-2" style="width: 40px; height: 40px; min-width: 40px;">
+                        <i class="fas fa-money-bill-wave text-success"></i>
                     </div>
-                    <div>
-                        <h6 class="text-muted mb-0 small text-uppercase fw-bold">Ingresos Hoy</h6>
-                        <h3 class="mb-0 fw-bold text-success">@ViewBag.MonedaBase?.Simbolo @ViewBag.IngresosHoy.ToString("N2")</h3>
+                    <div class="overflow-hidden">
+                        <h6 class="text-muted mb-0 x-small text-uppercase fw-bold text-truncate">NIO (Hoy)</h6>
+                        <h4 class="mb-0 fw-bold text-success text-truncate">C$ @ViewBag.IngresosHoyNIO.ToString("N2")</h4>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-sm-6 col-lg-3">
+        <div class="col-6 col-lg">
             <div class="card card-premium h-100 border-0 shadow-sm overflow-hidden border-start border-4 border-primary">
-                <div class="card-body d-flex align-items-center">
-                    <div class="icon-shape bg-soft-primary rounded-circle me-3">
-                        <i class="fas fa-file-invoice-dollar text-primary"></i>
+                <div class="card-body p-3 d-flex align-items-center">
+                    <div class="icon-shape bg-soft-primary rounded-circle me-2" style="width: 40px; height: 40px; min-width: 40px;">
+                        <i class="fas fa-dollar-sign text-primary"></i>
                     </div>
-                    <div>
-                        <h6 class="text-muted mb-0 small text-uppercase fw-bold">Cuentas Hoy</h6>
-                        <h3 class="mb-0 fw-bold text-primary">@ViewBag.CuentasHoy</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-6 col-lg-3">
-            <div class="card card-premium h-100 border-0 shadow-sm overflow-hidden border-start border-4 border-warning">
-                <div class="card-body d-flex align-items-center">
-                    <div class="icon-shape bg-soft-warning rounded-circle me-3">
-                        <i class="fas fa-clock text-warning"></i>
-                    </div>
-                    <div>
-                        <h6 class="text-muted mb-0 small text-uppercase fw-bold">Pendientes</h6>
-                        <h3 class="mb-0 fw-bold text-warning">@ViewBag.CuentasPendientes</h3>
+                    <div class="overflow-hidden">
+                        <h6 class="text-muted mb-0 x-small text-uppercase fw-bold text-truncate">USD (Hoy)</h6>
+                        <h4 class="mb-0 fw-bold text-primary text-truncate">$ @ViewBag.IngresosHoyUSD.ToString("N2")</h4>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-sm-6 col-lg-3">
+        <div class="col-6 col-lg">
             <div class="card card-premium h-100 border-0 shadow-sm overflow-hidden border-start border-4 border-info">
-                <div class="card-body d-flex align-items-center">
-                    <div class="icon-shape bg-soft-info rounded-circle me-3">
-                        <i class="fas fa-wallet text-info"></i>
+                <div class="card-body p-3 d-flex align-items-center">
+                    <div class="icon-shape bg-soft-info rounded-circle me-2" style="width: 40px; height: 40px; min-width: 40px;">
+                        <i class="fas fa-cash-register text-info"></i>
                     </div>
-                    <div>
-                        <h6 class="text-muted mb-0 small text-uppercase fw-bold">Total Recaudado</h6>
-                        <h3 class="mb-0 fw-bold text-info">@ViewBag.MonedaBase?.Simbolo @ViewBag.TotalRecaudado.ToString("N2")</h3>
+                    <div class="overflow-hidden">
+                        <h6 class="text-muted mb-0 x-small text-uppercase fw-bold text-truncate">Recaudado (Hoy)</h6>
+                        <h4 class="mb-0 fw-bold text-info text-truncate">@ViewBag.MonedaBase?.Simbolo @ViewBag.TotalRecaudadoHoy.ToString("N2")</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg">
+            <div class="card card-premium h-100 border-0 shadow-sm overflow-hidden border-start border-4 border-warning">
+                <div class="card-body p-3 d-flex align-items-center">
+                    <div class="icon-shape bg-soft-warning rounded-circle me-2" style="width: 40px; height: 40px; min-width: 40px;">
+                        <i class="fas fa-file-invoice-dollar text-warning"></i>
+                    </div>
+                    <div class="overflow-hidden">
+                        <h6 class="text-muted mb-0 x-small text-uppercase fw-bold text-truncate">Cuentas Hoy</h6>
+                        <h4 class="mb-0 fw-bold text-warning">@ViewBag.CuentasHoy</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg">
+            <div class="card card-premium h-100 border-0 shadow-sm overflow-hidden border-start border-4 border-danger">
+                <div class="card-body p-3 d-flex align-items-center">
+                    <div class="icon-shape bg-soft-danger rounded-circle me-2" style="width: 40px; height: 40px; min-width: 40px;">
+                        <i class="fas fa-exclamation-circle text-danger"></i>
+                    </div>
+                    <div class="overflow-hidden">
+                        <h6 class="text-muted mb-0 x-small text-uppercase fw-bold text-truncate">Pendientes (Total)</h6>
+                        <h4 class="mb-0 fw-bold text-danger">@ViewBag.CuentasPendientes</h4>
                     </div>
                 </div>
             </div>
