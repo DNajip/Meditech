@@ -500,6 +500,20 @@
     .total-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.95rem; }
     .total-final { font-size: 1.25rem; font-weight: bold; color: #1e40af; border-top: 2px solid #bfdbfe; padding-top: 8px; }
 
+    /* ROW HIGHLIGHT ANIMATION */
+    @@keyframes row-glow {
+        0% { background-color: rgba(16, 185, 129, 0.2); }
+        100% { background-color: transparent; }
+    }
+    .new-row-added {
+        animation: row-glow 1.5s ease-out;
+    }
+    .search-result-item.selected {
+        background: #EEF2FF;
+        color: #4F46E5;
+        border-left: 4px solid #4F46E5;
+    }
+
     /* DOCUMENT LIST */
     .doc-list { display: flex; flex-direction: column; gap: 10px; }
     .doc-item {
@@ -612,6 +626,47 @@
     .close-modal:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
     .close-modal:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
 
+
+    /* AUTOCOMPLETE STYLES (Premium UX/UI) */
+    .autocomplete-wrapper {
+        position: relative;
+        width: 100%;
+    }
+    .search-results-list {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        z-index: 2000;
+        max-height: 250px;
+        overflow-y: auto;
+        margin-top: 5px;
+        display: none;
+        padding: 5px;
+    }
+    .search-result-item {
+        padding: 10px 15px;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.2s;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #F1F5F9;
+    }
+    .search-result-item:last-child { border-bottom: none; }
+    .search-result-item:hover { background: #EEF2FF; color: #4F46E5; }
+    .search-result-item .item-name { font-weight: 600; font-size: 0.9rem; }
+    .search-result-item .item-meta { font-size: 0.75rem; color: #94A3B8; }
+    .search-result-item .badge-stock {
+        font-size: 0.7rem;
+        padding: 4px 8px;
+        border-radius: 10px;
+    }
 
 </style>
 
@@ -1130,22 +1185,21 @@
                         <div class="cierre-section">
                             <h6 class="fw-bold mb-3"><i class="fas fa-hand-holding-medical text-info me-2"></i>2. Tratamientos Aplicados</h6>
                             <div class="row align-items-end mb-3">
-                                <div class="col-md-7">
-                                    <label class="form-label small fw-bold text-muted">Seleccionar Tratamiento</label>
-                                    <select id="selCierreTratamiento" class="form-select" onchange="actualizarPrecioCierre('TRATAMIENTO')">
-                                        <option value="">-- Seleccione --</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-2">
-                                    <label class="form-label small fw-bold text-muted">Precio (<span class="simbolo-moneda">$</span>)</label>
-                                    <input type="number" id="precioCierreTratamiento" class="form-control" step="0.01" readonly style="background-color: #f1f5f9;">
-                                </div>
-                                <div class="col-md-3">
-                                    <button class="btn btn-outline-primary w-100" type="button" onclick="agregarItemCierre('TRATAMIENTO')"><i class="fas fa-plus me-1"></i> Agregar</button>
+                                <div class="col-12">
+                                    <label class="form-label small fw-bold text-muted">Buscar Tratamiento</label>
+                                    <div class="autocomplete-wrapper">
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                                            <input type="text" id="searchCierreTratamiento" class="form-control border-start-0 py-2" placeholder="Escriba para buscar y agregar tratamiento..." autocomplete="off">
+                                        </div>
+                                        <input type="hidden" id="selCierreTratamiento">
+                                        <input type="hidden" id="precioCierreTratamiento">
+                                        <div id="resultsCierreTratamiento" class="search-results-list"></div>
+                                    </div>
                                 </div>
                             </div>
                             <table class="cierre-table">
-                                <thead><tr><th>Tratamiento</th><th class="text-end">Precio</th><th class="text-center">Remover</th></tr></thead>
+                                <thead><tr><th>Tratamiento</th><th class="text-end">Precio</th><th class="text-center" style="width: 80px;">Remover</th></tr></thead>
                                 <tbody id="tbodyCierreTratamientos"></tbody>
                             </table>
                         </div>
@@ -1156,13 +1210,18 @@
                             <div class="row align-items-end mb-3">
                                 <div class="col-md-5">
                                     <label class="form-label small fw-bold text-muted">Seleccionar Producto</label>
-                                    <select id="selCierreProducto" class="form-select" onchange="actualizarPrecioCierre('PRODUCTO')">
-                                        <option value="">-- Seleccione --</option>
-                                    </select>
+                                    <div class="autocomplete-wrapper">
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                                            <input type="text" id="searchCierreProducto" class="form-control border-start-0" placeholder="Escriba para buscar producto..." autocomplete="off">
+                                        </div>
+                                        <input type="hidden" id="selCierreProducto">
+                                        <div id="resultsCierreProducto" class="search-results-list"></div>
+                                    </div>
                                 </div>
                                 <div class="col-md-2">
                                     <label class="form-label small fw-bold text-muted">Precio (<span class="simbolo-moneda">$</span>)</label>
-                                    <input type="number" id="precioCierreProducto" class="form-control" step="0.01" readonly style="background-color: #f1f5f9;">
+                                    <input type="number" id="precioCierreProducto" class="form-control" step="0.01" readonly style="background-color: #f8fafc; border-style: dashed;">
                                 </div>
                                 <div class="col-md-2">
                                     <label class="form-label small fw-bold text-muted">Cantidad</label>
@@ -2308,13 +2367,12 @@
             try { 
                 const resT = await fetch('/Consultas/GetCatTratamientos');
                 catTratamientos = await resT.json(); 
-                const selT = document.getElementById('selCierreTratamiento');
-                catTratamientos.forEach(t => selT.add(new Option(t.nombre, t.id)));
                 
                 const resP = await fetch('/Consultas/GetCatProductos');
                 catProductos = await resP.json(); 
-                const selP = document.getElementById('selCierreProducto');
-                catProductos.forEach(p => selP.add(new Option(`${p.nombre} (Stock: ${p.stock})`, p.id)));
+
+                // Initialize Search Logic
+                initAutocompleteCierre();
 
                 // Load Currency Configuration
                 const resC = await fetch('/Consultas/GetMonedaConfig');
@@ -2331,29 +2389,154 @@
         modalCierreObj.show();
     }
 
-    function actualizarPrecioCierre(tipo) {
-        if (tipo === 'TRATAMIENTO') {
-            const id = parseInt(document.getElementById('selCierreTratamiento').value);
-            const item = catTratamientos.find(t => t.id === id);
-            document.getElementById('precioCierreTratamiento').value = item ? item.precio : '';
-        } else {
-            const id = parseInt(document.getElementById('selCierreProducto').value);
-            const item = catProductos.find(p => p.id === id);
-            document.getElementById('precioCierreProducto').value = item ? item.precio : '';
+    function initAutocompleteCierre() {
+        // Treatments Search
+        setupAutocompleteLogic('searchCierreTratamiento', 'resultsCierreTratamiento', 'selCierreTratamiento', 'precioCierreTratamiento', 'TRATAMIENTO');
+        
+        // Products Search
+        setupAutocompleteLogic('searchCierreProducto', 'resultsCierreProducto', 'selCierreProducto', 'precioCierreProducto', 'PRODUCTO');
+
+        // Global key listener for adding product with Enter when quantity is focused
+        document.getElementById('cantCierreProducto').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                agregarItemCierre('PRODUCTO');
+            }
+        });
+
+        // Close results on click outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.autocomplete-wrapper')) {
+                document.getElementById('resultsCierreTratamiento').style.display = 'none';
+                document.getElementById('resultsCierreProducto').style.display = 'none';
+            }
+        });
+    }
+
+    function setupAutocompleteLogic(inputId, resultsId, hiddenId, priceId, type) {
+        const input = document.getElementById(inputId);
+        const results = document.getElementById(resultsId);
+        let selectedIndex = -1;
+        let currentItems = [];
+
+        input.addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase().trim();
+            selectedIndex = -1;
+            
+            if (val.length < 2) { 
+                results.style.display = 'none'; 
+                return; 
+            }
+            
+            currentItems = (type === 'TRATAMIENTO' ? catTratamientos : catProductos)
+                .filter(item => item.nombre.toLowerCase().includes(val))
+                .slice(0, 10); // Limit to 10 for performance
+
+            renderAutocompleteResults(currentItems, results, (item) => selectItem(item), type);
+        });
+
+        input.addEventListener('keydown', (e) => {
+            const itemsNodes = results.querySelectorAll('.search-result-item');
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedIndex = Math.min(selectedIndex + 1, itemsNodes.length - 1);
+                updateSelection(itemsNodes);
+            } 
+            else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedIndex = Math.max(selectedIndex - 1, 0);
+                updateSelection(itemsNodes);
+            } 
+            else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (selectedIndex >= 0 && itemsNodes[selectedIndex]) {
+                    itemsNodes[selectedIndex].click();
+                } else if (itemsNodes.length > 0) {
+                    itemsNodes[0].click(); // Select first if none selected
+                }
+            }
+            else if (e.key === 'Escape') {
+                results.style.display = 'none';
+            }
+        });
+
+        function updateSelection(nodes) {
+            nodes.forEach((n, i) => {
+                if (i === selectedIndex) {
+                    n.classList.add('selected');
+                    n.scrollIntoView({ block: 'nearest' });
+                } else {
+                    n.classList.remove('selected');
+                }
+            });
         }
+
+        function selectItem(item) {
+            if (type === 'TRATAMIENTO') {
+                // INSTANT ADD for Treatments
+                input.value = item.nombre;
+                document.getElementById(hiddenId).value = item.id;
+                document.getElementById(priceId).value = item.precio;
+                agregarItemCierre('TRATAMIENTO');
+                results.style.display = 'none';
+            } else {
+                // SMART FOCUS for Products
+                input.value = item.nombre;
+                document.getElementById(hiddenId).value = item.id;
+                document.getElementById(priceId).value = item.precio;
+                results.style.display = 'none';
+                
+                const cantInput = document.getElementById('cantCierreProducto');
+                cantInput.focus();
+                cantInput.select();
+            }
+        }
+    }
+
+    function renderAutocompleteResults(data, container, onSelect, type) {
+        if (data.length === 0) {
+            container.innerHTML = '<div class="p-3 text-muted small text-center">No se encontraron resultados</div>';
+            container.style.display = 'block';
+            return;
+        }
+
+        container.innerHTML = '';
+        data.forEach((item, index) => {
+            const row = document.createElement('div');
+            row.className = 'search-result-item';
+            row.innerHTML = `
+                <div>
+                    <div class="item-name">${item.nombre}</div>
+                    <div class="item-meta">${modalCurrencySymbol}${item.precio.toFixed(2)}</div>
+                </div>
+                ${type === 'PRODUCTO' ? 
+                    `<span class="badge ${item.stock > 5 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'} badge-stock">
+                        Stock: ${item.stock}
+                    </span>` : ''}
+            `;
+            row.addEventListener('click', () => onSelect(item));
+            container.appendChild(row);
+        });
+        container.style.display = 'block';
     }
 
     function agregarItemCierre(tipo) {
         const isTrat = tipo === 'TRATAMIENTO';
-        const sel = document.getElementById(isTrat ? 'selCierreTratamiento' : 'selCierreProducto');
+        const searchInput = document.getElementById(isTrat ? 'searchCierreTratamiento' : 'searchCierreProducto');
+        const hiddenId = document.getElementById(isTrat ? 'selCierreTratamiento' : 'selCierreProducto');
         const inpPrecio = document.getElementById(isTrat ? 'precioCierreTratamiento' : 'precioCierreProducto');
         
-        const idRef = parseInt(sel.value);
-        if (!idRef) { MediToast.warning('Seleccione un ítem.'); return; }
+        const idRef = parseInt(hiddenId.value);
+        if (!idRef) { 
+            MediToast.warning('Busque y seleccione un ítem de la lista.'); 
+            searchInput.focus();
+            return; 
+        }
+        
         const precio = parseFloat(inpPrecio.value);
         if (isNaN(precio) || precio < 0) { MediToast.warning('Precio inválido.'); return; }
         
-        // Tratamientos always have quantity 1. Products take quantity from input.
         let cant = 1;
         if (!isTrat) {
             const inpCant = document.getElementById('cantCierreProducto');
@@ -2361,44 +2544,47 @@
             if (isNaN(cant) || cant <= 0) { MediToast.warning('Cantidad inválida.'); return; }
         }
 
-        let desc = sel.options[sel.selectedIndex].text;
+        const desc = searchInput.value;
         
-        // Validate stock logic for PRODUCTO
         if (!isTrat) {
             const prod = catProductos.find(p => p.id === idRef);
-            // Cantidad ya agregada a la lista actual de cierre
             const cantInCart = itemsCierre.filter(i => i.tipoItem === 'PRODUCTO' && i.idReferencia === idRef).reduce((acc, curr) => acc + curr.cantidad, 0);
             const totalStock = prod ? prod.stock : 0;
             const remaining = totalStock - cantInCart;
 
             if (prod && (cant + cantInCart) > totalStock) {
                 if (remaining <= 0) {
-                    MediToast.warning(`Stock insuficiente. Ya ha agregado todas las unidades disponibles (${totalStock}) de ${prod.nombre} a la factura.`);
+                    MediToast.warning(`Stock insuficiente. Ya ha agregado todas las unidades disponibles (${totalStock}) de ${prod.nombre}.`);
                 } else {
-                    MediToast.warning(`Stock insuficiente. Usted ya tiene ${cantInCart} de este producto en la factura. En stock total hay ${totalStock}, por lo que solamente le quedan ${remaining} disponibles. El monto solicitado es mayor al stock restante, por favor ingrese una cantidad válida.`);
+                    MediToast.warning(`Stock insuficiente. Quedan ${remaining} disponibles.`);
                     document.getElementById('cantCierreProducto').value = remaining;
-                    document.getElementById('cantCierreProducto').focus();
                 }
                 return;
             }
-            desc = desc.split(' (Stock')[0]; // Limpiar el texto visual del select para guardar nomás el nombre
         }
 
-        itemsCierre.push({
-            id: Date.now(), // ID temporal
+        const newItem = {
+            id: Date.now(), 
             tipoItem: tipo,
             idReferencia: idRef,
             descripcion: desc,
             cantidad: cant,
             precioUnitario: precio,
-            subtotal: parseFloat((precio * cant).toFixed(2))
-        });
+            subtotal: parseFloat((precio * cant).toFixed(2)),
+            isNew: true // Flag for animation
+        };
+
+        itemsCierre.push(newItem);
 
         // Reset inputs
-        sel.value = ''; inpPrecio.value = ''; 
+        searchInput.value = ''; hiddenId.value = ''; inpPrecio.value = ''; 
         if (!isTrat) document.getElementById('cantCierreProducto').value = '1';
         
         renderItemsCierre();
+        
+        // Return focus to search after adding
+        if (isTrat) searchInput.focus();
+        else document.getElementById('searchCierreProducto').focus();
     }
 
     function eliminarItemCierre(tempId) {
@@ -2414,23 +2600,31 @@
         let subTrat = 0, subProd = 0;
 
         itemsCierre.forEach(item => {
+            const animationClass = item.isNew ? 'new-row-added' : '';
             if (item.tipoItem === 'TRATAMIENTO') {
-                tbTrat.innerHTML += `<tr>
+                const tr = document.createElement('tr');
+                if(animationClass) tr.className = animationClass;
+                tr.innerHTML = `
                     <td>${item.descripcion}</td>
                     <td class="text-end">${modalCurrencySymbol}${item.precioUnitario.toFixed(2)}</td>
                     <td class="text-center"><button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="eliminarItemCierre(${item.id})"><i class="fas fa-trash-alt"></i></button></td>
-                </tr>`;
+                `;
+                tbTrat.appendChild(tr);
                 subTrat += item.subtotal;
             } else {
-                tbProd.innerHTML += `<tr>
+                const tr = document.createElement('tr');
+                if(animationClass) tr.className = animationClass;
+                tr.innerHTML = `
                     <td>${item.descripcion}</td>
                     <td class="text-center">${item.cantidad}</td>
                     <td class="text-end">${modalCurrencySymbol}${item.precioUnitario.toFixed(2)}</td>
                     <td class="text-end fw-bold">${modalCurrencySymbol}${item.subtotal.toFixed(2)}</td>
                     <td class="text-center"><button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="eliminarItemCierre(${item.id})"><i class="fas fa-trash-alt"></i></button></td>
-                </tr>`;
+                `;
+                tbProd.appendChild(tr);
                 subProd += item.subtotal;
             }
+            item.isNew = false; // Remove flag after first render
         });
 
         document.getElementById('resCierreTrat').textContent = subTrat.toFixed(2);
