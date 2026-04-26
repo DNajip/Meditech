@@ -225,10 +225,44 @@ body {
 
     .table-responsive-premium td:last-child {
         border-bottom: 0;
-        background: #F8FAFC;
+        background: var(--bg-light);
         border-radius: 0 0 12px 12px;
         justify-content: center !important;
-        padding-left: 15px !important;
+        padding: 15px !important;
         text-align: center !important;
+        gap: 12px; /* Espacio entre botones */
     }
+
+    /* Mejora de botones de acción en móvil */
+    .btn-action-premium {
+        min-width: 44px;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        background: white;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        transition: all 0.2s;
+    }
+}
+
+/* Global Action Button Class */
+.btn-action-premium {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s;
+    background: rgba(0,0,0,0.03);
+    border: none;
+}
+
+.btn-action-premium:hover {
+    transform: translateY(-2px);
+    filter: brightness(0.9);
 }

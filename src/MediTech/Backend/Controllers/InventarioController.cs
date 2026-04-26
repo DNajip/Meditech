@@ -186,7 +186,7 @@ namespace MediTech.Backend.Controllers
         // POST: Inventario/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("IdProducto,Nombre,Descripcion,Precio,Stock,StockMinimo,Activo,FechaCreacion")] Producto producto)
+        public async Task<IActionResult> Edit(int id, [Bind("IdProducto,Nombre,Descripcion,Precio,StockMinimo,Activo")] Producto producto)
         {
             if (id != producto.IdProducto)
             {
@@ -197,11 +197,22 @@ namespace MediTech.Backend.Controllers
                 return NotFound();
             }
 
+            // Load existing product to preserve fields not in form (Stock, FechaCreacion)
+            var existingProduct = await _context.Productos.FindAsync(id);
+            if (existingProduct == null) return NotFound();
+
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(producto);
+                    // Update only allowed fields
+                    existingProduct.Nombre = producto.Nombre;
+                    existingProduct.Descripcion = producto.Descripcion;
+                    existingProduct.Precio = producto.Precio;
+                    existingProduct.StockMinimo = producto.StockMinimo;
+                    existingProduct.Activo = producto.Activo;
+
+                    _context.Update(existingProduct);
                     await _context.SaveChangesAsync();
 
                     if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
@@ -210,10 +221,13 @@ namespace MediTech.Backend.Controllers
                     }
                     TempData["Success"] = "Producto actualizado con éxito.";
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (Exception ex)
                 {
-                    if (!ProductoExists(producto.IdProducto)) return NotFound();
-                    else throw;
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    {
+                        return Json(new { success = false, message = "Error interno: " + ex.Message });
+                    }
+                    throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -221,7 +235,7 @@ namespace MediTech.Backend.Controllers
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-                return Json(new { success = false, message = "Error al actualizar el producto.", errors });
+                return Json(new { success = false, message = "Error de validación en los datos.", errors });
             }
             return View(producto);
         }

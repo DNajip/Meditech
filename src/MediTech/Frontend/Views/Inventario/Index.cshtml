@@ -356,7 +356,7 @@
 
                         <div class="col-md-4 d-flex align-items-center">
                             <div class="form-check form-switch mt-4">
-                                <input class="form-check-input" type="checkbox" name="Activo" id="editActivo">
+                                <input class="form-check-input" type="checkbox" name="Activo" id="editActivo" value="true">
                                 <label class="form-check-label fw-bold text-dark ms-2" for="editActivo">Producto Activo</label>
                             </div>
                         </div>
@@ -549,7 +549,11 @@
                             setTimeout(() => location.reload(), 1500);
                         } else {
                             console.warn("MediTech Debug: Edit POST Success but logic error:", response);
-                            if (typeof MediToast !== 'undefined') MediToast.error(response.message || 'Error al actualizar');
+                            let errorMsg = response.message || 'Error al actualizar';
+                            if (response.errors && response.errors.length > 0) {
+                                errorMsg = '<ul class="text-start mb-0 small">' + response.errors.map(err => `<li>${err}</li>`).join('') + '</ul>';
+                            }
+                            if (typeof MediToast !== 'undefined') MediToast.error(errorMsg);
                             $btn.html(originalText).prop('disabled', false);
                         }
                     },

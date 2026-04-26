@@ -55,7 +55,21 @@ document.addEventListener('DOMContentLoaded', function () {
                            </div>` 
                 };
             },
-            select: info => window.openCreateModal?.(info.start),
+            selectMirror: true,
+            unselectAuto: true,
+            selectLongPressDelay: 250, // Permite scroll antes de seleccionar en móvil
+            dateClick: info => {
+                // En móvil, un click simple es más intuitivo que una selección
+                if (window.innerWidth < 768) {
+                    window.openCreateModal?.(info.date);
+                }
+            },
+            select: info => {
+                // En desktop usamos select, en móvil preferimos dateClick para evitar conflictos con scroll
+                if (window.innerWidth >= 768) {
+                    window.openCreateModal?.(info.start);
+                }
+            },
             eventClick: info => {
                 info.jsEvent.preventDefault();
                 window.showEventModal?.(info.event);

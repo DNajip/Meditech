@@ -80,14 +80,6 @@
         border-radius: 20px; font-weight: 600;
     }
 
-    .action-link {
-        color: #3B82F6;
-        text-decoration: none;
-        font-weight: 500;
-        font-size: 0.82rem;
-        margin-right: 12px;
-    }
-    .action-link:hover { text-decoration: underline; }
 
     .empty-state {
         text-align: center;
@@ -234,9 +226,9 @@
                             </span>
                         </td>
                         <td data-label="Acciones">
-                            <a href="@Url.Action("Details", new { id = p.IdPaciente })" class="action-link" title="Detalles"><i class="fas fa-eye"></i></a>
-                            <a href="@Url.Action("Ficha", new { id = p.IdPaciente })" class="action-link" title="Ver Ficha" style="color: #10B981;"><i class="fas fa-file-medical"></i></a>
-                            <a href="@Url.Action("Edit", new { id = p.IdPaciente })" class="action-link" title="Editar" style="color: #F59E0B;"><i class="fas fa-pencil-alt"></i></a>
+                            <a href="@Url.Action("Details", new { id = p.IdPaciente })" class="btn-action-premium" title="Detalles" style="color: #3B82F6; background: rgba(59, 130, 246, 0.1);"><i class="fas fa-eye"></i></a>
+                            <a href="@Url.Action("Ficha", new { id = p.IdPaciente })" class="btn-action-premium" title="Ver Ficha" style="color: #10B981; background: rgba(16, 185, 129, 0.1);"><i class="fas fa-file-medical"></i></a>
+                            <a href="@Url.Action("Edit", new { id = p.IdPaciente })" class="btn-action-premium" title="Editar" style="color: #F59E0B; background: rgba(245, 158, 11, 0.1);"><i class="fas fa-pencil-alt"></i></a>
                         </td>
                     </tr>
                 }
