@@ -19,91 +19,111 @@ public class ReportesController : Controller
         _cache = cache;
     }
 
-    public async Task<IActionResult> Index(DateTime? desde, DateTime? hasta)
+    public async Task<IActionResult> Index(DateTime? desde, DateTime? hasta, string periodo = "mes")
     {
         var today = DateTime.Today;
+        var now = DateTime.Now;
         
-        // Calcular inicio de semana (Lunes)
-        int diff = (7 + (today.DayOfWeek - DayOfWeek.Monday)) % 7;
-        var startOfWeek = today.AddDays(-1 * diff).Date;
-        var startOfMonth = new DateTime(today.Year, today.Month, 1);
-        var startOfYear = new DateTime(today.Year, 1, 1);
-
-        // Obtener configuración de moneda base
-        var configMoneda = await _context.ConfiguracionesMoneda
-            .Include(c => c.MonedaBase)
-            .FirstOrDefaultAsync();
-        
+        // 1. Configuración de Moneda Base
+        var configMoneda = await _context.ConfiguracionesMoneda.Include(c => c.MonedaBase).FirstOrDefaultAsync();
         ViewBag.SimboloBase = configMoneda?.MonedaBase?.Simbolo ?? "$";
         ViewBag.NombreMoneda = configMoneda?.MonedaBase?.Nombre ?? "Dólares";
+        ViewBag.CodigoMonedaBase = configMoneda?.MonedaBase?.Codigo ?? "USD";
 
-        // 1. Totales por periodo (Actuales)
-        ViewBag.GananciaHoy = await _context.Pagos
-            .Where(p => p.FechaPago.Date == today)
-            .SumAsync(p => p.MontoBase ?? 0);
+        // 2. Determinación del Rango de Fechas
+        DateTime rangeStart;
+        DateTime rangeEnd = now;
+        ViewBag.PeriodoActual = periodo;
 
-        ViewBag.GananciaSemana = await _context.Pagos
-            .Where(p => p.FechaPago.Date >= startOfWeek)
-            .SumAsync(p => p.MontoBase ?? 0);
-
-        ViewBag.GananciaMes = await _context.Pagos
-            .Where(p => p.FechaPago.Date >= startOfMonth)
-            .SumAsync(p => p.MontoBase ?? 0);
-
-        ViewBag.GananciaAño = await _context.Pagos
-            .Where(p => p.FechaPago.Date >= startOfYear)
-            .SumAsync(p => p.MontoBase ?? 0);
-
-        // 2. Lógica de Filtrado Personalizado
-        ViewBag.FiltroActivo = false;
-        ViewBag.DesdeStr = desde?.ToString("yyyy-MM-dd");
-        ViewBag.HastaStr = hasta?.ToString("yyyy-MM-dd");
-        ViewBag.StartDate = desde;
-        ViewBag.EndDate = hasta;
-
-        var rangeStart = startOfMonth;
-        var rangeEnd = DateTime.Now;
-
-        if (desde.HasValue || hasta.HasValue)
+        if (desde.HasValue)
         {
-            ViewBag.FiltroActivo = true;
-            rangeStart = desde ?? new DateTime(2000, 1, 1);
-            rangeEnd = hasta?.AddDays(1).AddSeconds(-1) ?? DateTime.Now;
-
-            ViewBag.GananciaFiltrada = await _context.Pagos
-                .Where(p => p.FechaPago >= rangeStart && p.FechaPago <= rangeEnd)
-                .SumAsync(p => p.MontoBase ?? 0);
+            rangeStart = desde.Value.Date;
+            rangeEnd = hasta?.Date.AddDays(1).AddSeconds(-1) ?? now;
+            ViewBag.PeriodoActual = "custom";
+        }
+        else
+        {
+            switch (periodo.ToLower())
+            {
+                case "hoy":
+                    rangeStart = today;
+                    break;
+                case "semana":
+                    int diff = (7 + (today.DayOfWeek - DayOfWeek.Monday)) % 7;
+                    rangeStart = today.AddDays(-1 * diff).Date;
+                    break;
+                case "año":
+                    rangeStart = new DateTime(today.Year, 1, 1);
+                    break;
+                case "todo":
+                    rangeStart = new DateTime(2000, 1, 1);
+                    break;
+                case "mes":
+                default:
+                    rangeStart = new DateTime(today.Year, today.Month, 1);
+                    break;
+            }
         }
 
-        // 3. Desglose por método de pago (Usa el rango filtrado o el mes actual)
-        var pagosQuery = await _context.Pagos
+        ViewBag.StartDate = rangeStart;
+        ViewBag.EndDate = rangeEnd;
+        ViewBag.DesdeStr = rangeStart.ToString("yyyy-MM-dd");
+        ViewBag.HastaStr = rangeEnd.ToString("yyyy-MM-dd");
+
+        // 3. Totales de Referencia (KPIs Rápidos)
+        ViewBag.GananciaHoy = await _context.Pagos.Where(p => p.FechaPago.Date == today).SumAsync(p => p.MontoBase ?? 0);
+        ViewBag.GananciaSemana = await _context.Pagos.Where(p => p.FechaPago.Date >= today.AddDays(-7)).SumAsync(p => p.MontoBase ?? 0);
+        ViewBag.GananciaMes = await _context.Pagos.Where(p => p.FechaPago.Date >= new DateTime(today.Year, today.Month, 1)).SumAsync(p => p.MontoBase ?? 0);
+        ViewBag.GananciaAño = await _context.Pagos.Where(p => p.FechaPago.Date >= new DateTime(today.Year, 1, 1)).SumAsync(p => p.MontoBase ?? 0);
+
+        // 4. Obtener todos los pagos del periodo con sus relaciones
+        var pagosPeriodo = await _context.Pagos
+            .Include(p => p.Moneda)
+            .Include(p => p.Cuenta).ThenInclude(c => c.Detalles)
+            .Include(p => p.Cuenta).ThenInclude(c => c.Paciente).ThenInclude(pa => pa.Persona)
             .Where(p => p.FechaPago >= rangeStart && p.FechaPago <= rangeEnd)
-            .GroupBy(p => p.MetodoPago)
-            .Select(g => new { 
-                Metodo = g.Key ?? "OTRO", 
-                Total = g.Sum(p => p.MontoBase ?? 0) 
-            })
             .ToListAsync();
-        
-        // Asegurar que los 3 métodos principales existan para el Dashboard
+
+        ViewBag.TotalNio = pagosPeriodo.Where(p => p.Moneda?.Codigo == "NIO").Sum(p => p.Monto ?? 0);
+        ViewBag.TotalUsd = pagosPeriodo.Where(p => p.Moneda?.Codigo == "USD").Sum(p => p.Monto ?? 0);
+        ViewBag.TotalPeriodo = pagosPeriodo.Sum(p => p.MontoBase ?? 0);
+
+        // 5. Desglose por Origen (Tratamiento vs Producto) con Bimoneda
+        var pagosServicios = pagosPeriodo.Where(p => p.Cuenta?.Detalles?.Any(cd => cd.TipoItem == "TRATAMIENTO") ?? false).ToList();
+        var pagosProductos = pagosPeriodo.Where(p => p.Cuenta?.Detalles?.Any(cd => cd.TipoItem == "PRODUCTO") ?? false).ToList();
+
+        ViewBag.IngresosServicios = pagosServicios.Sum(p => p.MontoBase ?? 0);
+        ViewBag.ServiciosNio = pagosServicios.Where(p => p.Moneda?.Codigo == "NIO").Sum(p => p.Monto ?? 0);
+        ViewBag.ServiciosUsd = pagosServicios.Where(p => p.Moneda?.Codigo == "USD").Sum(p => p.Monto ?? 0);
+
+        ViewBag.IngresosProductos = pagosProductos.Sum(p => p.MontoBase ?? 0);
+        ViewBag.ProductosNio = pagosProductos.Where(p => p.Moneda?.Codigo == "NIO").Sum(p => p.Monto ?? 0);
+        ViewBag.ProductosUsd = pagosProductos.Where(p => p.Moneda?.Codigo == "USD").Sum(p => p.Monto ?? 0);
+
+        // 6. Desglose por Método de Pago
         var metodosPrincipales = new List<string> { "EFECTIVO", "TARJETA", "TRANSFERENCIA" };
-        var desgloseFinal = metodosPrincipales.Select(m => new MetodoPagoDto
-        {
+        var desgloseMetodos = pagosPeriodo
+            .GroupBy(p => p.MetodoPago?.ToUpper() ?? "OTRO")
+            .Select(g => new MetodoPagoDto { 
+                Metodo = g.Key, 
+                Total = g.Sum(p => p.MontoBase ?? 0) 
+            }).ToList();
+            
+        // Asegurar consistencia para el dashboard
+        ViewBag.DesgloseMetodos = metodosPrincipales.Select(m => new MetodoPagoDto {
             Metodo = m,
-            Total = pagosQuery.FirstOrDefault(p => p.Metodo.ToUpper() == m)?.Total ?? 0
+            Total = desgloseMetodos.FirstOrDefault(d => d.Metodo == m)?.Total ?? 0
         }).ToList();
 
-        // Agregar otros métodos si existen y no son los principales
-        var otrosMetodos = pagosQuery.Where(p => !metodosPrincipales.Contains(p.Metodo.ToUpper()));
-        foreach (var otro in otrosMetodos)
-        {
-            desgloseFinal.Add(new MetodoPagoDto { Metodo = otro.Metodo, Total = otro.Total });
-        }
+        // 7. Auditoría: Últimos 10 Movimientos de Caja
+        ViewBag.UltimosMovimientos = await _context.Pagos
+            .Include(p => p.Moneda)
+            .Include(p => p.Cuenta).ThenInclude(c => c!.Paciente).ThenInclude(pa => pa!.Persona)
+            .OrderByDescending(p => p.FechaPago)
+            .Take(10)
+            .ToListAsync();
 
-        ViewBag.DesgloseMetodos = desgloseFinal;
-        ViewBag.TotalPeriodo = desgloseFinal.Sum(d => d.Total);
-
-        // 4. Datos para el gráfico de tendencia (Últimos 6 meses - Mantenido como contexto)
+        // 8. Datos para el Gráfico (Últimos 6 meses)
         var seisMesesAtras = new DateTime(today.Year, today.Month, 1).AddMonths(-5);
         var tendenciaMensual = await _context.Pagos
             .Where(p => p.FechaPago.Date >= seisMesesAtras)
@@ -119,19 +139,14 @@ public class ReportesController : Controller
         ViewBag.TendenciaLabels = tendenciaMensual.Select(x => $"{GetMesNombre(x.Mes)} {x.Anio}").ToList();
         ViewBag.TendenciaValores = tendenciaMensual.Select(x => x.Total).ToList();
 
-        // 5. Cargar Consultas para la segunda sección del Acordeón
-        var consultas = await _context.Consultas
-            .Include(c => c.Cita!)
-                .ThenInclude(ci => ci.Paciente!)
-                    .ThenInclude(p => p.Persona!)
-            .Include(c => c.Medico!)
-                .ThenInclude(e => e.Persona!)
+        // 9. Historial de Consultas (Resumen)
+        ViewBag.HistorialConsultas = await _context.Consultas
+            .Include(c => c.Cita!).ThenInclude(ci => ci.Paciente!).ThenInclude(p => p.Persona!)
+            .Include(c => c.Medico!).ThenInclude(e => e.Persona!)
             .Include(c => c.Estado)
             .OrderByDescending(c => c.FechaConsulta)
-            .Take(20) // Mostramos las últimas 20 por defecto en el dashboard
+            .Take(10)
             .ToListAsync();
-            
-        ViewBag.HistorialConsultas = consultas;
 
         return View();
     }

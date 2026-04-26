@@ -1,20 +1,19 @@
 @{
-    ViewData["Title"] = "Centro de Reportes e Historial";
+    ViewData["Title"] = "Caja Pro - Control Financiero";
     var simbolo = ViewBag.SimboloBase ?? "$";
     var historial = ViewBag.HistorialConsultas as IEnumerable<MediTech.Backend.Models.Consulta>;
     var desglose = ViewBag.DesgloseMetodos as IEnumerable<MediTech.Backend.Models.MetodoPagoDto>;
+    var movimientos = ViewBag.UltimosMovimientos as IEnumerable<MediTech.Backend.Models.Pago>;
 }
 
 <style>
     :root {
-        --card-grad-1: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
-        --card-grad-2: linear-gradient(135deg, #10B981 0%, #059669 100%);
-        --card-grad-3: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-        --card-grad-4: linear-gradient(135deg, #EC4899 0%, #DB2777 100%);
-    }
-
-    .report-header {
-        margin-bottom: 2rem;
+        --caja-primary: #6366F1;
+        --caja-secondary: #4F46E5;
+        --caja-success: #10B981;
+        --caja-warning: #F59E0B;
+        --caja-danger: #EF4444;
+        --caja-dark: #1E293B;
     }
 
     /* Accordion Style (Matching Configuration) */
@@ -50,213 +49,324 @@
         box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
     }
 
-    /* Stat Cards */
-    .stat-card-premium {
-        position: relative;
-        border-radius: 20px;
-        padding: 24px;
-        color: white;
-        overflow: hidden;
-        border: none;
-        transition: transform 0.3s ease;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1);
-    }
-
-    .stat-card-premium:hover { transform: translateY(-5px); }
-    .stat-card-premium.today { background: var(--card-grad-1); }
-    .stat-card-premium.week { background: var(--card-grad-2); }
-    .stat-card-premium.month { background: var(--card-grad-3); }
-    .stat-card-premium.year { background: var(--card-grad-4); }
-
-    .stat-card-premium .stat-value { font-size: 2rem; font-weight: 800; }
-
-    /* Consultas Table (Premium Ghost Style) */
-    .table-modern thead th {
-        background: #f8fafc;
-        padding: 15px 20px;
-        font-size: 0.7rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 1px;
+    /* Period Filter Buttons */
+    .period-filter-group .btn {
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        padding: 8px 16px;
+        transition: all 0.2s;
+        border: 1px solid #e2e8f0;
+        background: white;
         color: #64748b;
     }
-
-    .btn-action-premium {
-        background: #eff6ff;
-        color: #3b82f6;
-        border: 1px solid #dbeafe;
-        font-weight: 700;
-        font-size: 0.8rem;
-        padding: 6px 12px;
-        border-radius: 10px;
-        transition: all 0.2s;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .btn-action-premium:hover {
-        background: #3b82f6;
+    .period-filter-group .btn.active {
+        background: var(--caja-primary);
         color: white;
-        transform: translateY(-2px);
+        border-color: var(--caja-primary);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
     }
 
-    .status-finalizada {
-        background: #dcfce7;
-        color: #166534;
-        font-size: 0.7rem;
-        font-weight: 800;
-        padding: 4px 10px;
-        border-radius: 100px;
+    /* Currency Stat Cards */
+    .caja-stat-card {
+        border-radius: 24px;
+        padding: 24px;
+        border: 1px solid rgba(255,255,255,0.1);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        height: 100%;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    .caja-stat-card:hover { transform: translateY(-5px); }
+    
+    .card-nio { background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%); color: white !important; }
+    .card-usd { background: linear-gradient(135deg, #10B981 0%, #047857 100%); color: white !important; }
+    .card-total { background: #1e293b; color: white !important; border: 2px solid #6366f1; }
+
+    .caja-stat-card .label { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; color: white !important; }
+    .caja-stat-card .value { font-size: 1.8rem; font-weight: 900; margin: 8px 0; color: white !important; }
+    .caja-stat-card .small { color: rgba(255,255,255,0.7) !important; }
+    
+    .caja-stat-card .icon-bg { 
+        position: absolute; right: -10px; bottom: -10px; font-size: 5rem; 
+        opacity: 0.15; transform: rotate(-15deg); color: white !important;
     }
 
-    .filter-bar-mini {
-        background: #f8fafc;
-        border-radius: 12px;
-        padding: 15px;
-        margin-bottom: 20px;
-        border: 1px solid #e2e8f0;
+    /* Source Breakdown Cards */
+    .source-card {
+        background: white;
+        border-radius: 20px;
+        padding: 20px;
+        border: 1px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
     }
+    .source-icon {
+        width: 48px; height: 48px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    /* Audit Table */
+    .audit-table thead th {
+        background: #f8fafc; padding: 12px 15px;
+        font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
+        color: #64748b; border: none;
+    }
+    .audit-table tbody td { padding: 12px 15px; border-bottom: 1px solid #f1f5f9; }
+    .method-badge {
+        font-size: 0.65rem; font-weight: 800; padding: 4px 10px;
+        border-radius: 100px; text-transform: uppercase;
+    }
+    .x-small { font-size: 0.7rem; }
 </style>
 
 <div class="report-header">
-    <div class="d-flex justify-content-between align-items-center mb-1">
-        <h2 class="fw-bold text-dark"><i class="fas fa-chart-pie me-2 text-primary"></i>Centro de Reportes e Historial</h2>
-        <div class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
-            <i class="fas fa-coins me-2"></i>Moneda: @ViewBag.NombreMoneda (@simbolo)
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h2 class="fw-bold text-dark mb-0"><i class="fas fa-vault me-2 text-primary"></i>Caja Pro</h2>
+            <p class="text-muted small">Control financiero bimoneda y arqueo de caja inteligente.</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <div class="period-filter-group d-inline-flex gap-1 p-1 bg-light rounded-3 shadow-sm border">
+                <a href="@Url.Action("Index", new { periodo = "hoy" })" class="btn btn-sm @(ViewBag.PeriodoActual == "hoy" ? "active" : "")">Hoy</a>
+                <a href="@Url.Action("Index", new { periodo = "semana" })" class="btn btn-sm @(ViewBag.PeriodoActual == "semana" ? "active" : "")">Semana</a>
+                <a href="@Url.Action("Index", new { periodo = "mes" })" class="btn btn-sm @(ViewBag.PeriodoActual == "mes" || string.IsNullOrEmpty(ViewBag.PeriodoActual) ? "active" : "")">Mes</a>
+                <a href="@Url.Action("Index", new { periodo = "año" })" class="btn btn-sm @(ViewBag.PeriodoActual == "año" ? "active" : "")">Año</a>
+                <button class="btn btn-sm @(ViewBag.PeriodoActual == "custom" ? "active" : "")" data-bs-toggle="collapse" data-bs-target="#customFilter">
+                    <i class="fas fa-calendar-alt"></i>
+                </button>
+            </div>
         </div>
     </div>
-    <p class="text-muted">Gestión centralizada de indicadores financieros y registros clínicos históricos.</p>
 </div>
 
-<div class="accordion border-0" id="reportAccordion">
+<!-- Filtro Personalizado Colapsable -->
+<div class="collapse @(ViewBag.PeriodoActual == "custom" ? "show" : "") mb-4" id="customFilter">
+    <div class="card card-body border-0 shadow-sm rounded-4 bg-light">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="small fw-bold text-muted ms-1 mb-1">Desde</label>
+                <input type="date" name="desde" value="@ViewBag.DesdeStr" class="form-control rounded-3 border-0 shadow-sm" />
+            </div>
+            <div class="col-md-4">
+                <label class="small fw-bold text-muted ms-1 mb-1">Hasta</label>
+                <input type="date" name="hasta" value="@ViewBag.HastaStr" class="form-control rounded-3 border-0 shadow-sm" />
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100 fw-bold rounded-3">Aplicar Filtro</button>
+                <a href="@Url.Action("Index")" class="btn btn-outline-secondary rounded-3"><i class="fas fa-times"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="accordion border-0 shadow-sm" id="reportAccordion">
     
-    <!-- SECCIÓN 1: ANÁLISIS FINANCIERO -->
+    <!-- SECCIÓN 1: ANÁLISIS FINANCIERO Y CAJA PRO -->
     <div class="accordion-item accordion-item-premium">
         <h2 class="accordion-header accordion-header-premium" id="headingFinanciero">
-            <button class="accordion-button @(ViewBag.FiltroActivo ? "" : "collapsed")" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFinanciero" aria-expanded="true" aria-controls="collapseFinanciero">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFinanciero" aria-expanded="true" aria-controls="collapseFinanciero">
                 <div class="d-flex align-items-center">
                     <div class="bg-primary bg-opacity-10 p-2 rounded-3 me-3 text-primary">
-                        <i class="fas fa-funnel-dollar px-1"></i>
+                        <i class="fas fa-vault px-1"></i>
                     </div>
-                    <span>Análisis Financiero y Ganancias</span>
+                    <span>Análisis Financiero y Caja Pro</span>
                 </div>
             </button>
         </h2>
-        <div id="collapseFinanciero" class="accordion-collapse collapse @(ViewBag.FiltroActivo ? "show" : "")" aria-labelledby="headingFinanciero" data-bs-parent="#reportAccordion">
+        <div id="collapseFinanciero" class="accordion-collapse collapse show" aria-labelledby="headingFinanciero" data-bs-parent="#reportAccordion">
             <div class="accordion-body-premium">
-                <!-- Filtros -->
-                <div class="filter-bar-mini mb-4">
-                    <span class="small fw-bold text-muted text-uppercase d-block mb-2"><i class="fas fa-filter me-1"></i>Filtrar Periodo</span>
-                    <form method="get" action="@Url.Action("Index", "Reportes")" class="row g-3 align-items-end">
-                        <div class="col-md-3">
-                            <input type="date" name="desde" value="@ViewBag.DesdeStr" class="form-control form-control-sm border-0 shadow-sm" />
-                        </div>
-                        <div class="col-md-3">
-                            <input type="date" name="hasta" value="@ViewBag.HastaStr" class="form-control form-control-sm border-0 shadow-sm" />
-                        </div>
-                        <div class="col-md-4 d-flex gap-2">
-                            <button type="submit" class="btn btn-dark btn-sm px-3">Consultar</button>
-                            @if (ViewBag.FiltroActivo)
-                            {
-                                <a href="@Url.Action("Index", "Reportes")" class="btn btn-link btn-sm text-decoration-none text-muted">Limpiar</a>
-                            }
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Totales -->
-                <div class="row g-4 mb-4">
-                    @if (ViewBag.FiltroActivo)
-                    {
-                        <div class="col-md-4">
-                            <div class="stat-card-premium" style="background: #1e293b; border: 2px solid #3b82f6;">
-                                <div class="stat-label small fw-bold opacity-75">T. FILTRADO</div>
-                                <h3 class="stat-value text-white">@simbolo@ViewBag.GananciaFiltrada.ToString("N2")</h3>
-                                <div class="small opacity-50">Periodo personalizado</div>
+                <!-- Filtro Personalizado -->
+                <div class="collapse @(ViewBag.PeriodoActual == "custom" ? "show" : "") mb-4" id="customFilter">
+                    <div class="card card-body border-0 shadow-sm rounded-4 bg-light">
+                        <form method="get" class="row g-3 align-items-end">
+                            <div class="col-md-4">
+                                <label class="small fw-bold text-muted ms-1 mb-1">Desde</label>
+                                <input type="date" name="desde" value="@ViewBag.DesdeStr" class="form-control rounded-3 border-0 shadow-sm" />
                             </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="stat-card-premium today"><div class="stat-label small">HOY</div><div class="h5 mb-0">@simbolo@ViewBag.GananciaHoy.ToString("N0")</div></div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="stat-card-premium week"><div class="stat-label small">SEMANA</div><div class="h5 mb-0">@simbolo@ViewBag.GananciaSemana.ToString("N0")</div></div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="stat-card-premium month"><div class="stat-label small">MES</div><div class="h5 mb-0">@simbolo@ViewBag.GananciaMes.ToString("N0")</div></div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="stat-card-premium year"><div class="stat-label small">AÑO</div><div class="h5 mb-0">@simbolo@ViewBag.GananciaAño.ToString("N0")</div></div>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="col-md-3"><div class="stat-card-premium today"><div class="stat-label small fw-bold">HOY</div><h3 class="stat-value">@simbolo@ViewBag.GananciaHoy.ToString("N2")</h3></div></div>
-                        <div class="col-md-3"><div class="stat-card-premium week"><div class="stat-label small fw-bold">ESTA SEMANA</div><h3 class="stat-value">@simbolo@ViewBag.GananciaSemana.ToString("N2")</h3></div></div>
-                        <div class="col-md-3"><div class="stat-card-premium month"><div class="stat-label small fw-bold">ESTE MES</div><h3 class="stat-value">@simbolo@ViewBag.GananciaMes.ToString("N2")</h3></div></div>
-                        <div class="col-md-3"><div class="stat-card-premium year"><div class="stat-label small fw-bold">ESTE AÑO</div><h3 class="stat-value">@simbolo@ViewBag.GananciaAño.ToString("N2")</h3></div></div>
-                    }
+                            <div class="col-md-4">
+                                <label class="small fw-bold text-muted ms-1 mb-1">Hasta</label>
+                                <input type="date" name="hasta" value="@ViewBag.HastaStr" class="form-control rounded-3 border-0 shadow-sm" />
+                            </div>
+                            <div class="col-md-4 d-flex gap-2">
+                                <button type="submit" class="btn btn-primary w-100 fw-bold rounded-3">Aplicar Filtro</button>
+                                <a href="@Url.Action("Index")" class="btn btn-outline-secondary rounded-3"><i class="fas fa-times"></i></a>
+                            </div>
+                        </form>
+                    </div>
                 </div>
 
-                <div class="row g-4">
-                    <div class="col-lg-8">
-                        <div class="p-4 border rounded-4 bg-white shadow-sm" style="height: 350px;">
-                            <h6 class="fw-bold mb-4"><i class="fas fa-chart-line text-primary me-2"></i>Tendencia Mensual</h6>
-                            <canvas id="tendenciaChart"></canvas>
+                <!-- KPIs BIMONEDA -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-4">
+                        <div class="caja-stat-card card-nio shadow-lg">
+                            <div class="label">Total Córdobas</div>
+                            <div class="value">C$ @ViewBag.TotalNio.ToString("N2")</div>
+                            <div class="small opacity-75">Ingresos en moneda nacional</div>
+                            <i class="fas fa-money-bill-wave icon-bg"></i>
                         </div>
                     </div>
-                    <div class="col-lg-4">
-                        <div class="p-4 border rounded-4 bg-white shadow-sm h-100">
-                            <h6 class="fw-bold mb-3"><i class="fas fa-wallet text-success me-2"></i>Por Método</h6>
-                            <div class="mb-3 pb-2 border-bottom">
-                                <span class="small text-muted fw-bold">TOTAL PERIODO: @simbolo@ViewBag.TotalPeriodo.ToString("N2")</span>
-                            </div>
-                            @if (desglose != null)
-                            {
-                                foreach (var m in desglose)
-                                {
-                                <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded-3">
-                                    <span class="small fw-bold">@m.Metodo</span>
-                                    <span class="small fw-bold text-primary">@simbolo@m.Total.ToString("N2")</span>
-                                </div>
-                            }
-                            }
+                    <div class="col-md-4">
+                        <div class="caja-stat-card card-usd shadow-lg">
+                            <div class="label">Total Dólares</div>
+                            <div class="value">U$ @ViewBag.TotalUsd.ToString("N2")</div>
+                            <div class="small opacity-75">Ingresos en moneda extranjera</div>
+                            <i class="fas fa-dollar-sign icon-bg"></i>
                         </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="caja-stat-card card-total shadow-lg">
+                            <div class="label">Consolidado (@ViewBag.CodigoMonedaBase)</div>
+                            <div class="value">@simbolo @ViewBag.TotalPeriodo.ToString("N2")</div>
+                            <div class="small opacity-75 text-primary fw-bold">Gran total en caja</div>
+                            <i class="fas fa-vault icon-bg"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <!-- Desglose por Origen -->
+                    <div class="col-lg-6">
+                        <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                            <h6 class="fw-bold mb-4 text-muted text-uppercase small"><i class="fas fa-sitemap me-2"></i>Origen de Ingresos</h6>
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <div class="source-card border-0">
+                                        <div class="source-icon bg-primary bg-opacity-10 text-primary"><i class="fas fa-stethoscope"></i></div>
+                                        <div>
+                                            <div class="small text-muted fw-bold">SERVICIOS</div>
+                                            <div class="fw-bold fs-5 text-dark">@simbolo@ViewBag.IngresosServicios.ToString("N0")</div>
+                                            <div class="x-small text-muted">C$ @ViewBag.ServiciosNio.ToString("N0") | U$ @ViewBag.ServiciosUsd.ToString("N0")</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="source-card border-0">
+                                        <div class="source-icon bg-success bg-opacity-10 text-success"><i class="fas fa-pills"></i></div>
+                                        <div>
+                                            <div class="small text-muted fw-bold">PRODUCTOS</div>
+                                            <div class="fw-bold fs-5 text-dark">@simbolo@ViewBag.IngresosProductos.ToString("N0")</div>
+                                            <div class="x-small text-muted">C$ @ViewBag.ProductosNio.ToString("N0") | U$ @ViewBag.ProductosUsd.ToString("N0")</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4" style="height: 180px;">
+                                <canvas id="sourceChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Desglose por Método -->
+                    <div class="col-lg-6">
+                        <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                            <h6 class="fw-bold mb-4 text-muted text-uppercase small"><i class="fas fa-wallet me-2"></i>Métodos de Pago</h6>
+                            <div class="list-group list-group-flush border-0">
+                                @if (desglose != null)
+                                {
+                                    foreach (var m in desglose)
+                                    {
+                                        <div class="list-group-item border-0 px-0 d-flex justify-content-between align-items-center mb-2">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="bg-light p-2 rounded-3 text-muted">
+                                                    <i class="fas @(m.Metodo == "EFECTIVO" ? "fa-money-bill" : m.Metodo == "TARJETA" ? "fa-credit-card" : "fa-university") w-15px text-center"></i>
+                                                </div>
+                                                <span class="fw-bold">@m.Metodo</span>
+                                            </div>
+                                            <div class="text-end">
+                                                <div class="fw-bold text-dark">@simbolo@m.Total.ToString("N2")</div>
+                                                @if (ViewBag.TotalPeriodo > 0)
+                                                {
+                                                    <div class="progress mt-1" style="height: 4px; width: 100px;">
+                                                        <div class="progress-bar bg-primary" style="width: @((m.Total / (decimal)ViewBag.TotalPeriodo * 100).ToString("F0"))%"></div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Auditoría de Caja -->
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
+                        <h6 class="fw-bold mb-0 text-dark"><i class="fas fa-list-check me-2 text-primary"></i>Auditoría de Caja (Últimos 10)</h6>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table audit-table align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Fecha / Hora</th>
+                                    <th>Paciente / Cliente</th>
+                                    <th>Método</th>
+                                    <th>Moneda</th>
+                                    <th class="text-end">Monto Original</th>
+                                    <th class="text-end">Monto Base</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (movimientos != null && movimientos.Any())
+                                {
+                                    foreach (var p in movimientos)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="fw-bold">@p.FechaPago.ToString("dd/MM/yy")</div>
+                                                <div class="small text-muted">@p.FechaPago.ToString("hh:mm tt")</div>
+                                            </td>
+                                            <td>
+                                                <div class="fw-bold text-dark">@(p.Cuenta?.Paciente?.Persona != null ? $"{p.Cuenta.Paciente.Persona.PrimerNombre} {p.Cuenta.Paciente.Persona.PrimerApellido}" : "Cliente General")</div>
+                                                <div class="small text-muted">Ref: #@p.IdPago</div>
+                                            </td>
+                                            <td>
+                                                <span class="method-badge @(p.MetodoPago == "EFECTIVO" ? "bg-success bg-opacity-10 text-success" : "bg-primary bg-opacity-10 text-primary")">
+                                                    @p.MetodoPago
+                                                </span>
+                                            </td>
+                                            <td><span class="fw-bold text-muted small">@p.Moneda?.Codigo</span></td>
+                                            <td class="text-end fw-bold">@(p.Moneda?.Simbolo ?? "$") @p.Monto?.ToString("N2")</td>
+                                            <td class="text-end fw-bold text-primary">@simbolo @p.MontoBase?.ToString("N2")</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- SECCIÓN 2: GESTIÓN DE CONSULTAS (HISTORIAL) -->
+    <!-- SECCIÓN 2: HISTORIAL CLÍNICO -->
     <div class="accordion-item accordion-item-premium">
         <h2 class="accordion-header accordion-header-premium" id="headingConsultas">
-            <button class="accordion-button @(ViewBag.FiltroActivo ? "collapsed" : "")" type="button" data-bs-toggle="collapse" data-bs-target="#collapseConsultas" aria-expanded="false" aria-controls="collapseConsultas">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseConsultas" aria-expanded="false" aria-controls="collapseConsultas">
                 <div class="d-flex align-items-center">
                     <div class="bg-success bg-opacity-10 p-2 rounded-3 me-3 text-success">
                         <i class="fas fa-notes-medical px-1"></i>
                     </div>
-                    <span>Gestión de Consultas (Historial Clínico)</span>
+                    <span>Historial de Consultas Recientes</span>
                 </div>
             </button>
         </h2>
-        <div id="collapseConsultas" class="accordion-collapse collapse @(ViewBag.FiltroActivo ? "" : "show")" aria-labelledby="headingConsultas" data-bs-parent="#reportAccordion">
+        <div id="collapseConsultas" class="accordion-collapse collapse" aria-labelledby="headingConsultas" data-bs-parent="#reportAccordion">
             <div class="accordion-body-premium">
                 <div class="table-responsive">
-                    <table class="table table-modern align-middle mb-0">
+                    <table class="table audit-table align-middle mb-0">
                         <thead>
                             <tr>
                                 <th>Fecha y Hora</th>
                                 <th>Paciente</th>
                                 <th>Médico</th>
                                 <th>Diagnóstico</th>
-                                <th>Estado</th>
-                                <th class="text-end">Acciones</th>
+                                <th class="text-end">Acción</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -274,44 +384,24 @@
                                             <div class="small text-muted">Exp: #@item.Cita?.Paciente?.IdPaciente</div>
                                         </td>
                                         <td>
-                                            <div class="d-flex align-items-center gap-2">
-                                                <img src="https://ui-avatars.com/api/?name=@(item.Medico?.Persona?.PrimerNombre)+@(item.Medico?.Persona?.PrimerApellido)&background=eff6ff&color=3b82f6" class="rounded-2" width="28" height="28" />
-                                                <div class="small fw-bold">Dr. @item.Medico?.Persona?.PrimerNombre</div>
-                                            </div>
+                                            <div class="small fw-bold">Dr. @item.Medico?.Persona?.PrimerNombre</div>
                                         </td>
-                                        <td style="max-width: 250px;">
-                                            <div class="text-truncate small" title="@item.DiagnosticoPrincipal">
-                                                @(string.IsNullOrEmpty(item.DiagnosticoPrincipal) ? "N/A" : item.DiagnosticoPrincipal)
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span class="status-finalizada">@item.Estado?.DescEstado</span>
+                                        <td style="max-width: 200px;">
+                                            <div class="text-truncate small">@item.DiagnosticoPrincipal</div>
                                         </td>
                                         <td class="text-end">
-                                            <a href="@Url.Action("DetalleExpediente", new { id = item.IdConsulta })" class="btn-action-premium">
-                                                <i class="fas fa-file-medical"></i> Expediente
+                                            <a href="@Url.Action("DetalleExpediente", new { id = item.IdConsulta })" class="btn btn-sm btn-light border fw-bold rounded-pill px-3">
+                                                Expediente
                                             </a>
                                         </td>
                                     </tr>
                                 }
                             }
-                            else
-                            {
-                                <tr>
-                                    <td colspan="6" class="text-center py-5 text-muted">
-                                        <i class="fas fa-search mb-2 d-block fs-2 opacity-25"></i>
-                                        No se encontraron consultas registradas.
-                                    </td>
-                                </tr>
-                            }
                         </tbody>
                     </table>
                 </div>
-                
-                <div class="mt-4 text-center">
-                    <a href="@Url.Action("HistorialConsultas")" class="btn btn-outline-primary btn-sm px-4 rounded-pill">
-                        Ver Historial Completo <i class="fas fa-external-link-alt ms-1 small"></i>
-                    </a>
+                <div class="text-center py-3">
+                    <a href="@Url.Action("HistorialConsultas")" class="small fw-bold text-decoration-none">Ver Historial Completo <i class="fas fa-chevron-right ms-1"></i></a>
                 </div>
             </div>
         </div>
@@ -322,35 +412,25 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const ctx = document.getElementById('tendenciaChart').getContext('2d');
-            const labels = @Html.Raw(Json.Serialize(ViewBag.TendenciaLabels));
-            const data = @Html.Raw(Json.Serialize(ViewBag.TendenciaValores));
-
-            new Chart(ctx, {
-                type: 'line',
+            // Gráfico de Origen (Dona)
+            const sourceCtx = document.getElementById('sourceChart').getContext('2d');
+            new Chart(sourceCtx, {
+                type: 'doughnut',
                 data: {
-                    labels: labels,
+                    labels: ['Servicios', 'Productos'],
                     datasets: [{
-                        label: 'Ingresos',
-                        data: data,
-                        borderColor: '#6366f1',
-                        backgroundColor: 'rgba(99, 102, 241, 0.05)',
-                        borderWidth: 3,
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: '#6366f1',
-                        pointBorderWidth: 2,
-                        pointRadius: 5
+                        data: [@ViewBag.IngresosServicios, @ViewBag.IngresosProductos],
+                        backgroundColor: ['#6366F1', '#10B981'],
+                        borderWidth: 0,
+                        hoverOffset: 10
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } } },
-                        x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+                    cutout: '75%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, font: { size: 11, weight: 'bold' } } }
                     }
                 }
             });
